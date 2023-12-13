@@ -1,0 +1,17 @@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Consultar Pagos</title>
+</head>
+<body>
+    <h1>Resultados de la consulta de pagos</h1>
+    
+    <ul>
+        {% for resultado in resultados %}
+            <li>{{ resultado.pay_id }} - {{ resultado.pay_name }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
