@@ -25,7 +25,7 @@ class Providers(models.Model):
     prov_address = models.CharField(max_length=255)
 
     class Meta:
-        managed = True
+        managed = False
         db_table = 'Providers'
 
     def __str__(self):

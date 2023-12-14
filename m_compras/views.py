@@ -11,7 +11,7 @@ def consultar_pago(request):
 
 def consultar_proveedores(request):
     # Llama a la función almacenada utilizando el ORM de Django
-    results = Providers.objects.raw('SELECT * FROM select_providers_all();')
+    results = Providers.objects.raw('SELECT * FROM providers_select_all();')
     # Puedes pasar los resultados a la plantilla o hacer cualquier otra cosa con ellos
     return render(request, 'consultar_proveedores.html', {'results': results})
 
