@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Consulta de Proveedores</title>
+    <style>
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Consulta de Proveedores</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>DNI</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+                <th>Tipo</th>
+                <th>Dirección</th>
+                
+            </tr>
+        </thead>
+        <tbody>
+            {% for proveedor in proveedores %}
+                <tr>
+                    <td>{{ proveedor.prov_dni }}</td>
+                    <td>{{ proveedor.prov_name }}</td>
+                    <td>{{ proveedor.prov_city }}</td>
+                    <td>{{ proveedor.prov_type }}</td>
+                    <td>{{ proveedor.prov_address }}</td>
+                    <td>{{ proveedor.prov_phone }}</td>
+                    <td>{{ proveedor.prov_email }}</td>
+                    <td>{{ proveedor.prov_status }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

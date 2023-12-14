@@ -18,10 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from m_compras.views import login_view
 from m_compras.views import consultar_pago
+from m_compras.views import ProvidersListCreateView
+from m_compras.views import consultar_proveedores
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('m_compras/', include('m_compras.urls')),
-    path('', consultar_pago, name='inicio'),  # Agrega esta línea para la ruta raíz
+    #path('', ProvidersListCreateView.as_view(), name='inicio'),  # Agrega esta línea para la ruta raíz
+    #path('', consultar_pago, name='inicio'),
+    path('', login_view, name='inicio'),
+    #path('', consultar_proveedores, name='inicio'),
 ]
 

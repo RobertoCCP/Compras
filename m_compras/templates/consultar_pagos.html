@@ -1,17 +1,43 @@
-
 <!DOCTYPE html>
 
 <html>
 <head>
     <title>Consultar Pagos</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Resultados de la consulta de pagos</h1>
     
-    <ul>
-        {% for resultado in resultados %}
-            <li>{{ resultado.pay_id }} - {{ resultado.pay_name }}</li>
-        {% endfor %}
-    </ul>
+    <table>
+        <thead>
+            <tr>
+                <th>ID de Pago</th>
+                <th>Nombre de Pago</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for resultado in resultados %}
+                <tr>
+                    <td>{{ resultado.pay_id }}</td>
+                    <td>{{ resultado.pay_name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
