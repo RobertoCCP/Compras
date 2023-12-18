@@ -1,28 +1,86 @@
-<!-- modulocompras/base.html -->
-
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Mi Sitio{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/script1.css' %}">
+  <title>Dashboard</title>
+  <title>Menu Compras</title>
+  <link rel="stylesheet" href="{% static 'css/styles2.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
 </head>
+
 <body>
-    <header>
-        <h1>{% block header %}Mi Sitio{% endblock %}</h1>
-        <nav>
-            <ul>
 
-            </ul>
-        </nav>
-    </header>
+  <!--wrapper start-->
+  <div class="wrapper">
+    <!--header menu start-->
+    <div class="header">
+      <div class="header-menu">
+        <div class="title">Modulo <span>Compras</span></div>
+        <div class="sidebar-btn">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul>
+          <a href="{% url 'login' %}" class="logout_btn">Salir</a>
+        </ul>
+      </div>
+    </div>
+    <!--header menu end-->
+    <!--sidebar start-->
+    <div class="sidebar">
+      <div class="sidebar-menu">
+        <center class="profile">
+          <img src="{% static 'images/img1.jpg'%}" class="profile_image" alt="">
+          <p>Modulo Compras</p>
+        </center>
+        <li class="item">
+          <a href="{% url 'dashboard' %}" class="Dashboard">
+            <i class="fas fa-desktop"></i><span>Dashboard</span>
+          </a>
+        </li>
+        <li class="item" id="proveedores">
+          <a href="{% url 'consultar_proveedores' %}" class="Dashboard">
+            <i class="material-icons-outlined text-blue">inventory_2</i><span>Proveedores</span></a>
+          </a>
+        </li>
+        <li class="item" id="facturas">
+          <a href="#" class="Dashboard">
+            <i class="fas fa-table text-orange"></i><span>Lista de Facturas</span></a>
+          </a>
+        </li>
+        <li class="item" id="detalle">
+          <a href="#" class="Dashboard">
+            <i class="fa fa-info-circle text-green"></i><span>Detalle de facturas</span></a>
+          </a>
+        </li>
+      </div>
+    </div>
+    <!--sidebar end-->
+    <!--main container start-->
+    <div class="main-container">
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    <!--main container end-->
+  </div>
+  <!--wrapper end-->
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $(".sidebar-btn").click(function () {
+        $(".wrapper").toggleClass("collapse");
+      });
+    });
+  </script>
 
-    <footer>
-        <p>&copy; 2023 Mi Sitio</p>
-    </footer>
 </body>
+
 </html>

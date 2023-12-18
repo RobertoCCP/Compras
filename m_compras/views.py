@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
-from .models import PayType
-from .models import Providers
+from django.views import View
+from .models import PayType, Providers, Invoice, InvoiceDetail
 from django.db import connection
 # Create your views here.
 
@@ -10,22 +10,31 @@ def consultar_pago(request):
     return render(request, 'consultar_pagos.html', {'resultados': resultados})
 
 def consultar_proveedores(request):
-    # Llama a la función almacenada utilizando el ORM de Django
-    results = Providers.objects.raw('SELECT * FROM providers_select_all();')
-    # Puedes pasar los resultados a la plantilla o hacer cualquier otra cosa con ellos
-    return render(request, 'consultar_proveedores.html', {'results': results})
-
+    query = 'SELECT * FROM public.providers_select_all();'
+    proveedores = Providers.objects.raw(query)
+    return render(request, 'consultar_proveedores.html', {'proveedores': proveedores})
 
 
 def login_view(request):
     if request.method == 'POST':
         # Lógica de autenticación aquí (por ahora, simplemente redireccionamos)
-        return redirect('menu')
+        return redirect('dashboard')
     else:
         return render(request, 'login.html')
     
 def menu_view(request):
     return render(request, 'menu.html')
+
+def dashboard_view(request):
+    num_providers = Providers.objects.count()
+    num_invoices = Invoice.objects.count()
+    num_invoice_details = InvoiceDetail.objects.count()
+
+    return render(request, 'dashboard.html', {
+        'num_providers': num_providers,
+        'num_invoices': num_invoices,
+        'num_invoice_details': num_invoice_details,
+    })
 
 
 from rest_framework import generics
@@ -35,3 +44,5 @@ from .serializers import ProvidersSerializer
 class ProvidersListCreateView(generics.ListCreateAPIView):
     queryset = Providers.objects.all()
     serializer_class = ProvidersSerializer
+
+
