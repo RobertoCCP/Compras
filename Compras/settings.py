@@ -81,9 +81,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'M_Compras',
-        'USER': 'postgres',
-        'PASSWORD': '1704',
-        'HOST': 'localhost',
+        'USER': 'bert',
+        'PASSWORD': 'bert1704',
+        'HOST': 'modulocompras.cdw0268cwary.us-east-2.rds.amazonaws.com',
         'PORT': '5432',
     }
 }

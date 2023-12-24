@@ -11,13 +11,15 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
     <!-- Enlace al archivo de estilos de Bootstrap solo para las tablas y los botones -->
-    <link rel="stylesheet" href="{% static 'css/tabla1.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tabla2.css' %}">
 </head>
 
 <body>
 
     <h1>Lista de Proveedores</h1><br>
-    <button type="button" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
+    <form method="get" action="{% url 'insertar_proveedor' %}"> 
+        <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
+    </form>
     <div style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
         <input type="text" placeholder="Buscar..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
         <i class="material-icons-outlined" style="margin-left: 10px;">search</i>
@@ -53,12 +55,15 @@
                 <td>{{ proveedor.prov_email }}</td>
                 <td>{{ proveedor.prov_city }}</td>
                 <td>{{ proveedor.prov_status}}</td>
-                <td>{{ proveedor.prov_type }}</td>
+                <td>{{ proveedor.get_prov_type_display }}</td>
                 <td>{{ proveedor.prov_address }}</td>
                 <td>
-                    <!-- Agregar botones de acción con clase de Bootstrap -->
-                    <button type="button" class="btn btn-primary btn-action">Editar</button>
-                    <button type="button" class="btn btn-danger btn-action">Eliminar</button>
+                    <div class="btn-container">
+                        <form method="get" action="{% url 'editar_proveedor' prov_id=proveedor.prov_id %}">
+                            <button type="submit" class="btn btn-primary btn-action">Editar</button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-action">Eliminar</button>
+                    </div>
                 </td>
             </tr>
             {% endfor %}

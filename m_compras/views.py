@@ -1,7 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.views import View
 from .models import PayType, Providers, Invoice, InvoiceDetail
 from django.db import connection
+from .forms import EditProviderForm, ProviderForm
+from django.contrib import messages
 # Create your views here.
 
 
@@ -14,6 +16,32 @@ def consultar_proveedores(request):
     proveedores = Providers.objects.raw(query)
     return render(request, 'consultar_proveedores.html', {'proveedores': proveedores})
 
+def editar_proveedor(request, prov_id):
+    provider = get_object_or_404(Providers, prov_id=prov_id)
+
+    if request.method == 'POST':
+        form = EditProviderForm(request.POST, instance=provider)
+        if form.is_valid():
+            form.save()
+            print("Proveedor guardado exitosamente")  # Añade este print para verificar
+            return redirect('consultar_proveedores')  # Cambiado a 'consultar_proveedores'
+        else:
+            print("Formulario no válido. Corrige los errores.")
+    else:
+        form = EditProviderForm(instance=provider)
+
+    return render(request, 'editar_proveedor.html', {'form': form, 'provider': provider})
+
+def insertar_proveedor(request):
+    if request.method == 'POST':
+        form = ProviderForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('consultar_proveedores')  # Puedes redirigir a la página de consulta después de la inserción
+    else:
+        form = ProviderForm()
+
+    return render(request, 'insertar_proveedor.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':

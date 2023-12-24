@@ -1,0 +1,85 @@
+/* Estilos de Bootstrap para las tablas y los botones */
+h1 {
+    font-size: 20px;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+.table th,
+.table td {
+    flex-grow: 1; /* Hace que cada columna tenga el mismo ancho */
+    flex-basis: 0; /* Permite que las columnas se adapten dinámicamente */
+    padding: 0.75rem;
+    vertical-align: middle;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+}
+
+.table thead th {
+    vertical-align: middle;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody+tbody {
+    border-top: 2px solid #dee2e6;
+}
+
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    color: #212529;
+    text-align: center;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.25;
+    border-radius: 0.2rem;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #9ca728;
+    border-color: #28a745;
+}
+
+.btn-action {
+    margin: 0;
+}
+
+/* Nueva regla para el contenedor de los botones */
+.btn-container {
+    display: flex;
+    justify-content: center;
+}
+
+/* Nueva regla para hacer las filas flexibles y que se envuelvan si es necesario */
+.table tbody {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Nueva regla para los td dentro de tbody */
+.table tbody td {
+    flex-basis: 100%; /* Cada columna ocupa el 100% de su contenedor (se envuelve) */
+    text-align: center;
+}

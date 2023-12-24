@@ -31,6 +31,15 @@ class Providers(models.Model):
     def __str__(self):
         return self.prov_name
     
+    def get_prov_type_display(self):
+        prov_type_int = int(self.prov_type)  # Convertir a entero
+        if prov_type_int == 1:
+            return "Crédito"
+        elif prov_type_int == 2:
+            return "Contado"
+        else:
+            return str(prov_type_int)
+
 
 
 class Invoice(models.Model):
