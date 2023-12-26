@@ -1,4 +1,4 @@
-#!/usr/bin/m_compras bash
+#!/usr/bin/env bash
 # exit on error
 set -o errexit
 
