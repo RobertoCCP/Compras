@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-<link rel="stylesheet" href="{% static 'css/editp.css' %}">
+<link rel="stylesheet" href="{% static 'style.css' %}">
+<link rel="stylesheet" href="{% static 'editp.css' %}">
     <h2>Insertar Proveedor</h2>
     <form class="form-container" method="post" action="{% url 'insertar_proveedor' %}">
         {% csrf_token %}
