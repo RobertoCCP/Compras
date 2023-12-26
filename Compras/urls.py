@@ -26,7 +26,7 @@ urlpatterns = [
     path('m_compras/', include('m_compras.urls')),
     #path('', ProvidersListCreateView.as_view(), name='inicio'),  # Agrega esta línea para la ruta raíz
     #path('', consultar_pago, name='inicio'),
-    path('', login_view, name='inicio'),
-    #path('', consultar_proveedores, name='inicio'),
+    #path('', login_view, name='inicio'),
+    path('', consultar_proveedores, name='inicio'),
 ]
 
