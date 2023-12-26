@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>Menu Compras</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+
+  <!--wrapper start-->
+  <div class="wrapper">
+    <!--header menu start-->
+    <div class="header">
+      <div class="header-menu">
+        <div class="title">Modulo <span>Compras</span></div>
+        <div class="sidebar-btn">
+          <i class="fas fa-bars"></i>
+        </div>
+        <ul>
+          <a href="{% url 'login' %}" class="logout_btn">Salir</a>
+        </ul>
+      </div>
+    </div>
+    <!--header menu end-->
+    <!--sidebar start-->
+    <div class="sidebar">
+      <div class="sidebar-menu">
+        <center class="profile">
+          <img src="{% static 'images/img1.jpg'%}" class="profile_image" alt="">
+          <p>Modulo Compras</p>
+        </center>
+        <li class="item">
+          <a href="#" class="Dashboard">
+            <i class="fas fa-desktop"></i><span>Dashboard</span>
+          </a>
+        </li>
+        <li class="item" id="proveedores">
+          <a href="#" class="Dashboard">
+            <i class="fas fa-cogs"></i><span>Proveedores</span></a>
+          </a>
+        </li>
+        <li class="item" id="compras">
+          <a href="#" class="Dashboard">
+            <i class="fas fa-table"></i><span>Lista Compras</span></a>
+          </a>
+        </li>
+      </div>
+    </div>
+    <!--sidebar end-->
+    <!--main container start-->
+    <div class="main-container">
+      <div class="card">
+        dfedwqdasdasdasdsad
+        <p>ss</p>
+        pppp
+      </div>
+    </div>
+    <!--main container end-->
+  </div>
+  <!--wrapper end-->
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $(".sidebar-btn").click(function () {
+        $(".wrapper").toggleClass("collapse");
+      });
+    });
+  </script>
+
+</body>
+
+</html>
