@@ -98,7 +98,8 @@ WSGI_APPLICATION = 'Compras.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://bert:bert1704@modulocompras.cdw0268cwary.us-east-2.rds.amazonaws.com:5432/M_Compras',
+        default='postgresql://bert:bert1704@modulocompras.cdw0268cwary.us-east-2.rds.amazonaws.com:5432/M_Compras',
+        conn_max_age=600
     )
 }
 
