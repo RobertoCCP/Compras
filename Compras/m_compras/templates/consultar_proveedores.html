@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- Enlace al archivo de estilos de Bootstrap solo para las tablas y los botones -->
+    <link rel="stylesheet" href="{% static 'css/tabla4.css' %}">
+</head>
+
+<body>
+
+    <h1>Lista de Proveedores</h1><br>
+    <form method="get" action="{% url 'insertar_proveedor' %}"> 
+        <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
+    </form>
+    <div style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
+        <input type="text" placeholder="Buscar..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <i class="material-icons-outlined" style="margin-left: 10px;">search</i>
+      </div>
+
+    <!-- Usar la clase "table" de Bootstrap solo para la tabla -->
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th style="display: none;">ID</th>
+                <th>Usuario</th>
+                <th>DNI</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+                <th>Tipo de pago</th>
+                <th>Dirección</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for proveedor in proveedores %}
+            <tr>
+                <td style="display: none;">{{ proveedor.prov_id }}</td>
+                <td>{{ proveedor.prov_name }}</td>
+                <td>{{ proveedor.prov_dni }}</td>
+                <td>{{ proveedor.prov_phone }}</td>
+                <td>{{ proveedor.prov_email }}</td>
+                <td>{{ proveedor.prov_city }}</td>
+                <td>{{ proveedor.prov_status}}</td>
+                <td>{{ proveedor.get_prov_type_display }}</td>
+                <td>{{ proveedor.prov_address }}</td>
+                <td>
+                    <div class="btn-container">
+                        <form method="get" action="{% url 'editar_proveedor' prov_id=proveedor.prov_id %}">
+                            <button type="submit" class="btn btn-primary btn-action">Editar</button>
+                        </form>
+                        <button type="button" class="btn btn-danger btn-action">Eliminar</button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% endblock %}
+
+</body>
+
+</html>
