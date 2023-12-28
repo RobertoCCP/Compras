@@ -80,10 +80,10 @@ WSGI_APPLICATION = 'Compras.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'M_Compras',
-        'USER': 'postgres',
-        'PASSWORD': '1704',
-        'HOST': 'localhost',
+        'NAME': 'pruebas',
+        'USER': 'usuario',
+        'PASSWORD': 'admin123',
+        'HOST': '45.70.13.16',
         'PORT': '5432',
     }
 }
