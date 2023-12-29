@@ -3,6 +3,7 @@ body {
     padding: 0;
     box-sizing: border-box;
     background-color: #e6e8ed;
+    text-decoration: none;
     color: #666666;
     font-family: "Montserrat", sans-serif;
   }

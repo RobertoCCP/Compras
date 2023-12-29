@@ -1,16 +1,15 @@
-*{
+body{
     margin: 0;
     padding: 0;
+    background: #fff;
     list-style: none;
     text-decoration: none;
     box-sizing: border-box;
     font-family: "Roboto", sans-serif;
+    display: flex;
   }
   
   
-  body{
-    background: #fff;
-  }
   
   .wrapper .header{
     z-index: 1;
