@@ -9,21 +9,21 @@
 
 <head>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-fmklJ84cyzpm5Ov2Yhz5ev04m0Px7WRGS5fwO9+VsA7o52D1MXN6E5bo5fImFeT/i9vOFf8XFOeAuU7MLJF32w==" crossorigin="anonymous" />
     <!-- Enlace al archivo de estilos de Bootstrap solo para las tablas y los botones -->
-    <link rel="stylesheet" href="{% static 'css/tabla2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tabla6.css' %}">
 </head>
 
 <body>
 
     <h1>Lista de Proveedores</h1><br>
-    <form method="get" action="{% url 'insertar_proveedor' %}"> 
+    <form method="get" action="{% url 'insertar_proveedor' %}">
         <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
     </form>
-    <div style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
-        <input type="text" placeholder="Buscar..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
-        <i class="material-icons-outlined" style="margin-left: 10px;">search</i>
-      </div>
+    <form id="search-form" method="get" action="{% url 'consultar_proveedores' %}" style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
+        <input type="text" id="search-input" name="search" placeholder="Buscar..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+        <button class="material-icons-outlined search-icon" style="margin-left: 10px;">search</button>
+    </form>
 
     <!-- Usar la clase "table" de Bootstrap solo para la tabla -->
 
@@ -62,7 +62,7 @@
                         <form method="get" action="{% url 'editar_proveedor' prov_id=proveedor.prov_id %}">
                             <button type="submit" class="btn btn-primary btn-action">Editar</button>
                         </form>
-                        <button type="button" class="btn btn-danger btn-action">Eliminar</button>
+                      <!-- <button type="button" class="btn btn-danger btn-action">Eliminar</button>-->
                     </div>
                 </td>
             </tr>
@@ -71,6 +71,57 @@
         </tbody>
 
     </table>
+
+    <!-- Paginación -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if proveedores.has_previous %}
+            <a href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+            <a href="?page={{ proveedores.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+            {% endif %}
+
+            <span class="current">
+                Página {{ proveedores.number }} de {{ proveedores.paginator.num_pages }}.
+            </span>
+
+            {% if proveedores.has_next %}
+            <a href="?page={{ proveedores.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+            <a href="?page={{ proveedores.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+            {% endif %}
+        </span>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Función para realizar la búsqueda
+            function performSearch() {
+                var searchQuery = $('#search-input').val();
+                $.ajax({
+                    url: $('#search-form').attr('action'),
+                    type: 'GET',
+                    data: { 'search': searchQuery },
+                    success: function (data) {
+                        $('#proveedores-table').html(data);
+                    },
+                    error: function () {
+                        console.error('Error al realizar la solicitud AJAX');
+                    }
+                });
+            }
+
+            // Escuchar al evento input en el campo de búsqueda
+            $('#search-input').on('input', function () {
+                performSearch();
+            });
+
+            // Escuchar al evento click en el ícono de búsqueda
+            $('.search-icon').on('click', function () {
+                performSearch();
+            });
+        });
+    </script>
+
 
     {% endblock %}
 

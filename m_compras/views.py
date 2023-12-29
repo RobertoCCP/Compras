@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, redirect
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views import View
 from .models import PayType, Providers, Invoice, InvoiceDetail
 from django.db import connection
@@ -11,10 +12,40 @@ def consultar_pago(request):
     resultados = PayType.objects.raw('SELECT pay_id, pay_name FROM public."Pay_type"')
     return render(request, 'consultar_pagos.html', {'resultados': resultados})
 
+#def consultar_proveedores(request):
+ #   query = 'SELECT * FROM public.providers_select_all();'
+  #  proveedores = Providers.objects.raw(query)
+   # return render(request, 'consultar_proveedores.html', {'proveedores': proveedores})
+
 def consultar_proveedores(request):
-    query = 'SELECT * FROM public.providers_select_all();'
-    proveedores = Providers.objects.raw(query)
-    return render(request, 'consultar_proveedores.html', {'proveedores': proveedores})
+    # Consulta SQL personalizada
+    search_query = request.GET.get('search', '')
+    base_query = 'SELECT * FROM public.providers_select_all()'
+    if search_query:
+        query = f'{base_query} WHERE prov_name ILIKE %s;'
+        proveedores = Providers.objects.raw(query, [f'%{search_query}%'])
+    else:
+        query = base_query
+        proveedores = Providers.objects.raw(query)
+
+    # Configurar el paginador
+    paginator = Paginator(list(proveedores), 8)  # Muestra 8 proveedores por página
+
+    # Obtener el número de página de la solicitud GET
+    page = request.GET.get('page')
+
+    try:
+        proveedores_paginados = paginator.page(page)
+    except PageNotAnInteger:
+        # Si la página no es un número entero, mostrar la primera página
+        proveedores_paginados = paginator.page(1)
+    except EmptyPage:
+        # Si la página está fuera de rango (por encima del número total de páginas),
+        # mostrar la última página
+        proveedores_paginados = paginator.page(paginator.num_pages)
+
+    return render(request, 'consultar_proveedores.html', {'proveedores': proveedores_paginados, 'search_query': search_query})
+
 
 def editar_proveedor(request, prov_id):
     provider = get_object_or_404(Providers, prov_id=prov_id)

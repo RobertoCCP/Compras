@@ -72,3 +72,53 @@ h1 {
     display: flex;
     justify-content: center; /* Alinear los botones al centro horizontalmente */
 }
+
+.pagination {
+    text-align: left; /* Align pagination to the left */
+    display: flex; /* Use flexbox for flexible layout */
+    justify-content: flex-start; /* Align items to the left */
+  }
+  
+  .step-links {
+    display: flex; /* Make links flow horizontally */
+    gap: 10px; /* Adjust spacing between links */
+  }
+  
+  .step-links a {
+    background-color: #007bff; /* Blue background from the image */
+    color: #fff; /* White text for readability */
+    padding: 10px 15px; /* Adjust padding as needed */
+    border-radius: 5px; /* Rounded corners like in the image */
+    text-decoration: none; /* Remove underlines from links */
+  }
+  
+  .step-links a:hover {
+    background-color: #0062cc; /* Darker blue on hover */
+  }
+  
+  .step-links .current {
+    background-color: #fff; /* White background for current page */
+    color: #007bff; /* Blue text for current page */
+    font-weight: bold; /* Bold for emphasis */
+  }
+  
+  /* Icon styling based on the image */
+  .step-links a .fas {
+    font-size: 16px; /* Adjust icon size as needed */
+  }
+  
+  .step-links a[href="?page=1"]::before {
+    content: "<"; /* First page icon */
+  }
+  
+  .step-links a[href="?page={{ proveedores.previous_page_number }}"]::before {
+    content: "‹"; /* Previous page icon */
+  }
+  
+  .step-links a[href="?page={{ proveedores.next_page_number }}"]::before {
+    content: "›"; /* Next page icon */
+  }
+  
+  .step-links a[href="?page={{ proveedores.paginator.num_pages }}"]::before {
+    content: ">"; /* Last page icon */
+  }
