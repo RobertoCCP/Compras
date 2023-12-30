@@ -46,7 +46,15 @@ class Providers(models.Model):
         ip_address = '127.0.0.1'  # Puedes obtener esto de la solicitud si es necesario
         table_name = 'Providers'
         description = f"{action_type} - Provider: {self.prov_name}"
-        function_name = 'function-3'  # Ajusta según tus necesidades
+        
+        # Mapeo de action_type a functionName
+        function_mapping = {
+            'CREATE': 'function-2',  # Crear
+            'UPDATE': 'function-3',  # Editar
+            'DELETE': 'function-4',  # Eliminar
+        }
+        
+        function_name = function_mapping.get(action_type, 'function-1')  # Iniciar sesión por defecto
         observation = 'Nada'
 
         with connection.cursor() as cursor:
