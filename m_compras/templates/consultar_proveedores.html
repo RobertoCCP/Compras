@@ -17,8 +17,9 @@
 <body>
 
     <h1>Lista de Proveedores</h1><br>
-    <form method="get" action="{% url 'insertar_proveedor' %}">
+    <form method="get" action="{% url 'insertar_proveedor' %}" style="display: flex; align-items: center;">
         <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
+        <button type="button" class="btn btn-primary">Otro botón</button>
     </form>
     <form id="search-form" method="get" action="{% url 'consultar_proveedores' %}" style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
         <input type="text" id="search-input" name="search" placeholder="Buscar..." style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">

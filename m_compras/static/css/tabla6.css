@@ -1,131 +1,146 @@
 /* Estilos de Bootstrap para las tablas y los botones */
 h1 {
-    font-size: 20px;
-  }
+  font-size: 20px;
+  margin-top: 20px;
+  margin-left: 20px;
+}
 
-  body{
-    background-image: linear-gradient(to top, #a0b5eb, #c9f0e4);
-  }
+body{
+  background: rgb(238,174,202);
+  background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);
+  
+}
 
-  .table {
-    width: 100%;
-    margin-bottom: 1rem;
-    color: #ffffff;
-    font-size: 13px;
-  }
-  
-  .table th,
-  .table td {
-    padding: 0.75rem;
-    vertical-align: middle;
-    text-align: center;
-    border-top: 1px solid #000000; /* Color azul claro para las líneas */
-    background-color: #fff;
-    color: #007bff;
-    /*font-weight: bold;*/
-  }
-  
-  .table thead th {
-    vertical-align: middle;
-    border-bottom: 2px solid #000000;
-    color: #7716a7;
-  }
-  
-  .table tbody+tbody {
-    border-top: 2px solid #dee2e6;
-  }
-  
-  .btn {
-    display: inline-block;
-    font-weight: 400;
-    color: #212529;
-    text-align: center;
-    vertical-align: middle;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    font-size: 0.875rem;
-    padding: 0.25rem 0.5rem;
-    line-height: 1.25;
-    border-radius: 0.2rem;
-  }
-  
-  .btn-primary {
-    color: #fff;
-    background-color: #72e5eb;
-    border-color: #0037ff;
-  }
-  
-  .btn-danger {
-    color: #fff;
-    background-color: #dc3545;
-    border-color: #dc3545;
-  }
-  
-  .btn-success {
-    color: #fff;
-    background-color: #f9751d;
-    border-color: #ffffff;
-  }
-  
-  .btn-action {
-    margin: 0;
-  }
-  
-  .btn-container {
-    display: flex;
-    justify-content: center;
-  }
-  
-  /* Paginación */
-  .pagination {
-    text-align: left;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .step-links {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .step-links a {
-    background-color: #ccc; /* Color gris para los botones */
-    color: #000; /* Color negro para el texto de los botones */
-    padding: 5px 10px;
-    border-radius: 5px;
-    text-decoration: none;
-  }
-  
-  .step-links a:hover {
-    background-color: #bbb; /* Color gris más claro al pasar el mouse */
-  }
-  
-  .step-links .current {
-    background-color:#d1d0d000;
-    color: #007bff;
-    font-weight: bold;
-    padding: 5px;
-  }
-  
-  /* Estilos personalizados */
-  
-  .step-links a {
-    /* Texto en cursiva */
-    font-style: italic;
-  }
-  
-  .table th,
-  .table td {
-    /* Color de las líneas */
-    border-color: #b300ff;
-  }
-  
-  .table th,
-  .table td {
-    /* Color del texto */
-    color: #666666;;
-  }
+.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 13px;
+}
 
-  
+.table th,
+.table td {
+  padding: 0.75rem;
+  vertical-align: middle;
+  text-align: center;
+  border-top: 1px solid #000000; /* Color azul claro para las líneas */
+  background-color: #fff;
+  color: #007bff;
+  /*font-weight: bold;*/
+}
+
+.table thead th {
+  vertical-align: middle;
+  border-bottom: 2px solid #000000;
+  color: #7716a7;
+}
+
+.table tbody+tbody {
+  border-top: 2px solid #dee2e6;
+}
+
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  color: #212529;
+  text-align: center;
+  vertical-align: middle;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  line-height: 1.25;
+  border-radius: 0.2rem;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #72e5eb;
+  border-color: #0037ff;
+}
+
+.btn-danger {
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-success {
+  margin-left: 20px;
+  color: #fff;
+  background-color: #f9751d;
+  border-color: #000000;
+  border-radius: 20%;
+  font-size: 1rem;
+}
+
+.btn-action {
+  margin: 0;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: center;
+}
+
+/* Paginación */
+.pagination {
+  text-align: left;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.step-links {
+  display: flex;
+  gap: 10px;
+}
+
+.step-links a {
+  background-color: #ccc; /* Color gris para los botones */
+  color: #000; /* Color negro para el texto de los botones */
+  padding: 5px 10px;
+  border-radius: 5px;
+  text-decoration: none;
+}
+
+.step-links a:hover {
+  background-color: #bbb; /* Color gris más claro al pasar el mouse */
+}
+
+.step-links .current {
+  background-color:#d1d0d000;
+  color: #007bff;
+  font-weight: bold;
+  padding: 5px;
+}
+
+/* Estilos personalizados */
+
+.step-links a {
+  /* Texto en cursiva */
+  font-style: italic;
+}
+
+.table th,
+.table td {
+  /* Color de las líneas */
+  border-color: #b300ff;
+}
+
+.table th,
+.table td {
+  /* Color del texto */
+  color: #666666;;
+}
+
+/* Nuevos estilos para los formularios */
+form {
+display: flex;
+width: fit-content;
+}
+
+#search-form {
+  margin-top: -37px;
+}
