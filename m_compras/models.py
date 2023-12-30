@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.http import request
 # Create your models here.
 class PayType(models.Model):
     pay_id = models.AutoField(primary_key=True)
@@ -30,6 +30,39 @@ class Providers(models.Model):
 
     def __str__(self):
         return self.prov_name
+    
+    def save(self, *args, user_id=None, **kwargs):
+        action_type = 'CREATE' if not self.pk else 'UPDATE'
+        super().save(*args, **kwargs)
+        self.audit_log(action_type, user_id)
+
+    def delete(self, *args, user_id=None, **kwargs):
+        super().delete(*args, **kwargs)
+        self.audit_log('DELETE', user_id)
+
+    def audit_log(self, action_type, user_id=None):
+        from django.db import connection
+
+        ip_address = '127.0.0.1'  # Puedes obtener esto de la solicitud si es necesario
+        table_name = 'Providers'
+        description = f"{action_type} - Provider: {self.prov_name}"
+        function_name = 'function-3'  # Ajusta según tus necesidades
+        observation = 'Nada'
+
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO audit_log (action_type, table_name, row_id, user_id, ip_address, description, function_name, observation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                [action_type, table_name, self.pk, user_id, ip_address, description, function_name, observation]
+            )
+    
+    def get_prov_type_display(self):
+        prov_type_int = int(self.prov_type)  # Convertir a entero
+        if prov_type_int == 1:
+            return "Crédito"
+        elif prov_type_int == 2:
+            return "Contado"
+        else:
+            return str(prov_type_int)
     
     
     def get_prov_type_display(self):

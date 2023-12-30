@@ -112,3 +112,14 @@ class ProvidersListCreateView(generics.ListCreateAPIView):
     serializer_class = ProvidersSerializer
 
 
+from django.views.generic.edit import CreateView
+from .models import Providers
+
+class ProviderCreateView(CreateView):
+    model = Providers
+    template_name = 'provider_form.html'
+    fields = ['prov_name', 'prov_dni', 'prov_phone', 'prov_email', 'prov_city', 'prov_status', 'prov_type', 'prov_address']
+
+    def form_valid(self, form):
+        form.instance.save(user_id=self.request.user.id)  # Asegúrate de tener el usuario disponible en tu vista
+        return super().form_valid(form)
