@@ -75,14 +75,18 @@ def editar_proveedor(request, prov_id):
 def insertar_proveedor(request):
     if request.method == 'POST':
         form = ProviderForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('consultar_proveedores')  # Puedes redirigir a la página de consulta después de la inserción
+        try:
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'success': True, 'message': 'Proveedor guardado exitosamente'})
+            else:
+                raise Exception("Formulario no válido. Corrige los errores.")
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
     else:
         form = ProviderForm()
 
     return render(request, 'insertar_proveedor.html', {'form': form})
-
 
 
 def login_view(request):
@@ -94,7 +98,7 @@ def login_view(request):
             cursor.execute("SELECT id, username, password FROM public.personal WHERE username=%s", [username])
             result = cursor.fetchone()
 
-            if result and result[2] == password:  # Comparar contraseñas directamente
+            if result and result[2] == password:
                 # Usuario encontrado, iniciar sesión
                 personal_id = result[0]
 
@@ -114,10 +118,10 @@ def login_view(request):
 
                 request.session['personal_id'] = user_id  # Almacenar el ID del usuario en la sesión
 
-                return redirect('dashboard')
+                return JsonResponse({'success': True, 'redirect_url': '/dashboard'})
             else:
                 # Usuario no encontrado o contraseña incorrecta, mostrar error
-                return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos.'})
+                return JsonResponse({'success': False, 'error': 'Usuario o contraseña incorrectos.'})
 
     # Si no es un POST, renderizar el formulario de inicio de sesión
     return render(request, 'login.html')

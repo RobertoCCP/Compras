@@ -47,34 +47,27 @@
         
         <button type="submit">Guardar cambios</button>
     </form>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-    <script>
-        $(document).ready(function () {
-            $('form').submit(function (e) {
-                e.preventDefault();
-                var form = $(this);
-                $.ajax({
-                    type: form.attr('method'),
-                    url: form.attr('action'),
-                    data: form.serialize(),
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.success) {
-                            Swal.fire('Éxito', 'Cambios guardados exitosamente', 'success')
-                                .then(function () {
-                                    window.location.href = '{% url "consultar_proveedores" %}';
-                                });
-                        } else {
-                            Swal.fire('Error', data.error, 'error');
-                        }
-                    },
-                    error: function () {
-                        console.error('Error al realizar la solicitud AJAX');
-                    }
-                });
-            });
-        });
-    </script>
+    import logging
+
+    logger = logging.getLogger(__name__)
+    
+    def insertar_proveedor(request):
+        if request.method == 'POST':
+            form = ProviderForm(request.POST)
+            try:
+                if form.is_valid():
+                    form.save()
+                    logger.info('Proveedor guardado exitosamente')
+                    return JsonResponse({'success': True})
+                else:
+                    raise Exception("Formulario no válido. Corrige los errores.")
+            except Exception as e:
+                logger.error(f'Error al guardar proveedor: {e}')
+                return JsonResponse({'success': False, 'error': str(e)})
+        else:
+            form = ProviderForm()
+    
+        return render(request, 'insertar_proveedor.html', {'form': form})
 
 {% endblock %}
 
