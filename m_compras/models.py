@@ -1,5 +1,7 @@
 from django.db import models
 from django.http import request
+from django.contrib.auth.models import AbstractUser
+
 # Create your models here.
 class PayType(models.Model):
     pay_id = models.AutoField(primary_key=True)
@@ -63,15 +65,6 @@ class Providers(models.Model):
                 [action_type, table_name, self.pk, user_id, ip_address, description, function_name, observation]
             )
     
-    def get_prov_type_display(self):
-        prov_type_int = int(self.prov_type)  # Convertir a entero
-        if prov_type_int == 1:
-            return "Crédito"
-        elif prov_type_int == 2:
-            return "Contado"
-        else:
-            return str(prov_type_int)
-    
     
     def get_prov_type_display(self):
         prov_type_int = int(self.prov_type)  # Convertir a entero
@@ -114,4 +107,22 @@ class InvoiceDetail(models.Model):
     def __str__(self):
         return f"Detalle de Factura #{self.ivo_det_id}"
     
-    
+
+# Define the Personal model
+class Personal(models.Model):
+  id = models.AutoField(primary_key=True)
+  username = models.CharField(max_length=255, unique=True)
+  password = models.CharField(max_length=255)
+  email = models.CharField(max_length=255)
+
+  # Define the model's Meta class
+  class Meta:
+    # Set the model's name
+    verbose_name = 'Personal'
+    # Set the model's plural name
+    verbose_name_plural = 'Personales'
+
+  # Define the model's methods
+  def __str__(self):
+    # Return the model's username
+    return self.username

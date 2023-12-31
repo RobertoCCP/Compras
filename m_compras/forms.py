@@ -11,4 +11,3 @@ class EditProviderForm(forms.ModelForm):
         model = Providers
         prov_status = forms.ChoiceField(choices=[('activo', 'Activo'), ('inactivo', 'Inactivo')])
         fields = '__all__'
-

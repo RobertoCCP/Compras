@@ -4,7 +4,10 @@ from django.views import View
 from .models import PayType, Providers, Invoice, InvoiceDetail
 from django.db import connection
 from .forms import EditProviderForm, ProviderForm
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+
+from .models import Personal
 # Create your views here.
 
 
@@ -69,7 +72,6 @@ def editar_proveedor(request, prov_id):
     return render(request, 'editar_proveedor.html', {'form': form, 'provider': provider})
 
 
-
 def insertar_proveedor(request):
     if request.method == 'POST':
         form = ProviderForm(request.POST)
@@ -81,12 +83,68 @@ def insertar_proveedor(request):
 
     return render(request, 'insertar_proveedor.html', {'form': form})
 
+
+
 def login_view(request):
     if request.method == 'POST':
-        # Lógica de autenticación aquí (por ahora, simplemente redireccionamos)
-        return redirect('dashboard')
-    else:
-        return render(request, 'login.html')
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT id, username, password FROM public.personal WHERE username=%s", [username])
+            result = cursor.fetchone()
+
+            if result and result[2] == password:  # Comparar contraseñas directamente
+                # Usuario encontrado, iniciar sesión
+                personal_id = result[0]
+
+                # Registrar en el audit log al iniciar sesión
+                action_type = 'LOGIN'
+                user_id = personal_id
+                ip_address = request.META.get('REMOTE_ADDR', None)
+                table_name = 'personal'
+                description = f"{action_type} - Usuario: {username}"
+                function_name = 'function-1'  # Ajustar según sea necesario
+                observation = 'Nada'
+
+                cursor.execute(
+                    "INSERT INTO audit_log (action_type, table_name, row_id, user_id, ip_address, description, function_name, observation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                    [action_type, table_name, user_id, user_id, ip_address, description, function_name, observation]
+                )
+
+                request.session['personal_id'] = user_id  # Almacenar el ID del usuario en la sesión
+
+                return redirect('dashboard')
+            else:
+                # Usuario no encontrado o contraseña incorrecta, mostrar error
+                return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos.'})
+
+    # Si no es un POST, renderizar el formulario de inicio de sesión
+    return render(request, 'login.html')
+
+
+def logout_view(request):
+    # Obtener el ID de personal de la sesión
+    user_id = request.session.get('personal_id')
+
+    # Registrar en el audit log antes de cerrar sesión
+    action_type = 'LOGOUT'
+    ip_address = request.META.get('REMOTE_ADDR', None)
+    table_name = 'personal'
+    description = f"{action_type} - Usuario ID: {user_id}" if user_id else f"{action_type}"
+    function_name = 'function-2'  # Puedes ajustar según tus necesidades
+    observation = 'Nada'
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "INSERT INTO audit_log (action_type, table_name, row_id, user_id, ip_address, description, function_name, observation) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            [action_type, table_name, user_id, user_id, ip_address, description, function_name, observation]
+        )
+
+    # Limpiar el ID de personal de la sesión al cerrar sesión
+    del request.session['personal_id']
+
+    return redirect('login')  # A
     
 def menu_view(request):
     return render(request, 'menu.html')
