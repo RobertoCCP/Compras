@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Buscar productos...">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary" type="button">Buscar</button>
+                </div>
+            </div>
+            <div class="scrollable-list">
+                {% for product in products %}
+                <div class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ product.pro_name }}</h5>
+                        <small>producto id: {{ product.pro_id }}</small>
+                        <small>Precio: ${{ product.pro_pvp }}</small>
+                        <small>Stock: {{ product.pro_stock }}</small>
+                    </div>
+                    Descripción: <p>{{ product.pro_descripcion }}</p>
+                    Iva: <p>{{ product.pro_iva }}</p>
+                    Cantidad: <input type="number" value="1" min="1" class="quantity-{{ product.pro_id }}">
+                    <button class="btn btn-primary btn-sm" onclick="addProductToInvoiceDetail(
+                                            '{{ product.pro_id }}',
+                                            '{{ product.pro_name }}',
+                                            '{{ product.pro_pvp }}',
+                                            '{{ product.pro_stock}}',
+                                            '{{ product.pro_iva|lower }}')">Agregar
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Invoice Header -->
+        <div class="col-md-6">
+            <div class="row mb-3 justify-content-end">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input type="text" class="form-control mb-2" id="searchInput" placeholder="Ingresar cédula...">
+                        <button id="searchButton" class="btn btn-primary mb-2"
+                            onclick="buscarPorCedula()">Buscar</button>
+                    </div>
+                </div>
+            </div>
+            <div id="customerDetails">
+                <div class="col-12">
+                    <input type="text" id="customerDni" class="form-control mb-2" placeholder="Cédula"
+                        value="1005245236">
+                </div>
+                <div class="col-12">
+                    <input type="text" id="customerType" class="form-control mb-2" placeholder="Tipo de cliente">
+                </div>
+                <div class="col-12">
+                    <input type="text" id="customerName" class="form-control mb-2" placeholder="Nombres">
+                </div>
+                <div class="col-12">
+                    <input type="text" id="customerAddress" class="form-control mb-2" placeholder="Dirección">
+                </div>
+                <div class="col-12">
+                    <input type="text" id="customerPhone" class="form-control mb-2" placeholder="Teléfono">
+                </div>
+                <div class="col-12">
+                    <input type="email" id="customerEmail" class="form-control mb-2" placeholder="Correo">
+                </div>
+            </div>
+            <div class="col-12">
+                <label>Valor de IVA a aplicar</label>
+
+            </div>
+            <div class="col-4">
+                <label>Fecha</label>
+                <input type="text" id="headerDate" class="form-control mb-2" disabled>
+            </div>
+            <!-- Invoice Header End -->
+        </div>
+    </div>
+</div>
+<!-- Invoice Details and Totals/Subtotals -->
+<div class="col-12">
+    <div class="bottom-area">
+        <!-- Invoice Details Table -->
+        <div class="invoice-details">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Producto Id</th>
+                        <th>Cantidad</th>
+                        <th>Nombre Producto</th>
+                        <th>Precio Unitario</th>
+                        <th>Incluye Iva</th>
+                        <th>Porcentaje IVA</th>
+                        <th>Subtotal IVA</th>
+                        <th>Subtotal PVP</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <!-- Totals and Subtotals Area -->
+        <div class="totals text-right">
+            <div class="form-group row">
+                <label for="subTotalIva" class="col-sm-6 col-form-label">SUBTOTAL IVA%</label>
+                <div class="col-sm-6">
+                    <input type="number" id="subTotalIva" class="form-control form-control-sm" placeholder="0.00"
+                        readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="subtotal" class="col-sm-6 col-form-label">SUBTOTAL PVP</label>
+                <div class="col-sm-6">
+                    <input type="number" id="subtotal" class="form-control form-control-sm" placeholder="0.00" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="total" class="col-sm-6 col-form-label">TOTAL</label>
+                <div class="col-sm-6">
+                    <input type="number" id="total" class="form-control form-control-sm" placeholder="0.00" readonly>
+                </div>
+            </div>
+            <!-- Totals and Subtotals Area End -->
+            <!-- Button by generate invoice -->
+            <div class="col-12">
+                <button class="btn btn-primary btn-md" onclick="">
+                    Generar Factura
+                </button>
+            </div>
+            <!-- Button by generate invoice End -->
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Función para realizar la búsqueda por cédula
+        function performSearchByCedula() {
+            var cedulaQuery = $('#search-input').val();  // Asume que el campo de búsqueda es para la cédula
+            $.ajax({
+                url: $('#search-form').attr('action'),
+                type: 'GET',
+                data: { 'cedula': cedulaQuery },  // Ajusta el nombre del campo según tu modelo
+                success: function (data) {
+                    $('#proveedores-table').html(data);
+                },
+                error: function () {
+                    console.error('Error al realizar la solicitud AJAX');
+                }
+            });
+        }
+
+        // Escuchar al evento input en el campo de búsqueda
+        $('#search-input').on('input', function () {
+            performSearchByCedula();
+        });
+
+        // Escuchar al evento click en el ícono de búsqueda
+        $('.search-icon').on('click', function () {
+            performSearchByCedula();
+        });
+    });
+</script>
+
+{% endblock %}

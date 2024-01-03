@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <title>Dashboard</title>
   <title>Menu Compras</title>
-  <link rel="stylesheet" href="{% static 'css/styles7.css' %}">
+  <link rel="stylesheet" href="{% static 'css/style9.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
 </head>
@@ -53,12 +53,12 @@
           </a>
         </li>
         <li class="item" id="facturas">
-          <a href="#" class="Dashboard">
+          <a href="{% url 'consultar_facturas' %}" class="Dashboard">
             <i class="fas fa-table text-orange"></i><span>Lista de Facturas</span></a>
           </a>
         </li>
         <li class="item" id="detalle">
-          <a href="#" class="Dashboard">
+          <a href="{% url 'detalle' %}" class="Dashboard">
             <i class="fa fa-info-circle text-green"></i><span>Detalle de facturas</span></a>
           </a>
         </li>

@@ -1,0 +1,105 @@
+<div class="container-fluid">
+    <div class="row">
+        <!-- Invoice Header -->
+        <div class="col-md-6">
+            <div class="row mb-3 justify-content-end">
+                <div class="col-md-12">
+                    <div class="input-group">
+                        <input type="text" class="form-control mb-2" id="searchInput" placeholder="Ingresar cédula...">
+                        <div class="input-group-append">
+                            <button id="searchButton" class="btn btn-primary mb-2">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="customerDetails" class="row">
+                <div class="col-12 mb-2">
+                    <input type="text" id="customerDni" class="form-control" placeholder="Cédula" value="1005245236">
+                </div>
+                <div class="col-12 mb-2">
+                    <input type="text" id="customerType" class="form-control" placeholder="Tipo de cliente">
+                </div>
+                <div class="col-12 mb-2">
+                    <input type="text" id="customerName" class="form-control" placeholder="Nombres">
+                </div>
+                <div class="col-12 mb-2">
+                    <input type="text" id="customerAddress" class="form-control" placeholder="Dirección">
+                </div>
+                <div class="col-12 mb-2">
+                    <input type="text" id="customerPhone" class="form-control" placeholder="Teléfono">
+                </div>
+                <div class="col-12 mb-2">
+                    <input type="email" id="customerEmail" class="form-control" placeholder="Correo">
+                </div>
+                <div class="col-12 mb-2">
+                    <label for="paymentTypeId">Tipo de Pago</label>
+                    <select class="form-control" id="paymentTypeId">
+                        {% for payment in PayType.objects.all %}
+                            <option value="{{ payment.pay_id }}">{{ payment.pay_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 mb-2">
+                    <label for="ivaId">Valor de IVA a aplicar</label>
+                    <select class="form-control" id="ivaId">
+                        {% for prov in providers %}
+                            <option value="{{ prov.prov_id }}">{{ prov.prov_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-4 mb-2">
+                    <label for="headerDate">Fecha</label>
+                    <input type="text" id="headerDate" class="form-control" disabled>
+                </div>
+            </div>
+            <!-- Invoice Header End -->
+        </div>
+        <!-- Resto del código... -->
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="{% static 'js/invoice_functions.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.getElementById('currentDate').value = new Date().toLocaleDateString();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const customerDniInput = document.getElementById('customerDni');
+        const customerTypeInput = document.getElementById('customerType');
+        const customerNameInput = document.getElementById('customerName');
+        const customerAddressInput = document.getElementById('customerAddress');
+        const customerPhoneInput = document.getElementById('customerPhone');
+        const customerEmailInput = document.getElementById('customerEmail');
+
+        searchButton.addEventListener('click', function() {
+            const searchText = searchInput.value.trim();
+
+            // Realizar la solicitud AJAX a tu servidor (Django) para obtener los detalles del cliente
+            fetch(`/modulo_facturacion/get_customer_by_dni/?cus_dni=${searchText}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Asignar los datos del cliente a los campos de input correspondientes
+                    customerDniInput.value = data.cus_dni || '';
+                    customerTypeInput.value = data.cus_is_credit || '';
+                    customerNameInput.value = data.cus_name || '';
+                    customerAddressInput.value = data.cus_address || '';
+                    customerPhoneInput.value = data.cus_phone || '';
+                    customerEmailInput.value = data.cus_email || '';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Limpiar los campos si hay un error
+                    customerDniInput.value = '';
+                    customerTypeInput.value = '';
+                    customerNameInput.value = '';
+                    customerAddressInput.value = '';
+                    customerPhoneInput.value = '';
+                    customerEmailInput.value = '';
+                });
+        });
+    });
+</script>

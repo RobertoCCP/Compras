@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% block content %}
+  {% load static %}
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Tienda de Productos</title>
+      <link rel="stylesheet" href="{% static 'css/detalle2.css' %}" />
+      <!-- ... (otras etiquetas meta, title, etc.) ... -->
+      <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    </head>
+    <body>
+      <div class="container">
+        <div class="product-list">
+          {% for product in products %}
+            <div class="product-card">
+              <div class="product-image">
+                <img src="{{ product.pro_image_url }}" alt="{{ product.pro_name }}" />
+              </div>
+              <div class="product-details">
+                <h4>{{ product.pro_name }}</h4>
+                <p class="description">Descripción: {{ product.pro_descripcion }}</p>
+                <p class="price">Precio: ${{ product.pro_pvp }}</p>
+                <p class="stock">Stock: {{ product.pro_stock }}</p>
+                <p class="iva">Iva: {{ product.pro_iva }}</p>
+                <div class="quantity-input">
+                  <label for="quantity{{ product.pro_id }}">Cantidad:</label>
+                  <input type="number" id="quantity{{ product.pro_id }}" name="quantity{{ product.pro_id }}" value="1" min="1" />
+                </div>
+                <button class="add-to-cart" onclick="addProductToInvoiceDetail(
+            '{{ product.pro_id }}',
+            '{{ product.pro_name }}',
+            '{{ product.pro_pvp }}',
+            '{{ product.pro_stock }}',
+            '{{ product.pro_iva|lower }}')">Agregar al Carrito</button>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div id="espacio"></div>
+      <form method="get" action="{% url 'detalle' %}" id="searchForm">
+        <h3>Datos del Proveedor</h3>
+        <input type="text" id="dni" name="dni" placeholder="Ingrese el DNI del proveedor" value="{{ provider.prov_dni }}">
+        <button type="button" onclick="searchProvider()">Buscar</button>
+
+        <!-- Agregar esta sección para mostrar errores si existen -->
+        {% if error %}
+          <div>{{ error }}</div>
+        {% endif %}
+
+        <div id="provider-data-fields">
+          <div class="form-group">
+            <label for="prov_name">Nombre:</label>
+            <div id="prov_name" class="value-box">{{ provider.prov_name }}</div>
+          </div>
+        
+          <div class="form-group">
+            <label for="prov_dni">Cédula/RUC:</label>
+            <div id="prov_dni" class="value-box">{{ provider.prov_dni }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="prov_city">Ciudad:</label>
+            <div class="value-box">{{ provider.prov_city }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="prov_type">Tipo de Proveedor:</label>
+            <div class="value-box">{{ provider.get_prov_type_display }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="prov_address">Dirección:</label>
+            <div class="value-box">{{ provider.prov_address }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="prov_phone">Teléfono:</label>
+            <div class="value-box" placeholder="Teléfono">{{ provider.prov_phone }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="prov_email">Email:</label>
+            <div class="value-box">{{ provider.prov_email }}</div>
+          </div>
+
+          <div class="form-group">
+            <label for="prov_status">Estado:</label>
+            <div class="value-box">{{ provider.prov_status }}</div>
+          </div>
+        </div>
+      </form>
+
+      <script>
+        function searchProvider() {
+          var dni = document.getElementById('dni').value;
+        
+          $.ajax({
+            url: '{% url "detalle" %}',
+            data: { dni: dni },
+            dataType: 'json',
+            success: function (data) {
+              if ('error' in data) {
+                alert(data['error']);
+              } else {
+                // Actualizar los valores en los campos correspondientes
+                for (var field in data) {
+                  if (data.hasOwnProperty(field)) {
+                    $("#" + field).text(data[field]);
+                  }
+                }
+              }
+            },
+            error: function (error) {
+              console.log(error);
+            }
+          });
+        }
+      </script>
+    </body>
+  </html>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- Enlace al archivo de estilos de Bootstrap solo para las tablas y los botones -->
+    <link rel="stylesheet" href="{% static 'css/facturas.css' %}">
+</head>
+
+<body>
+
+    <h1>Lista de Facturas</h1><br>
+    <form method="get" action=""> 
+        <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
+    </form>
+
+    <form method="get" action="{% url 'consultar_facturas' %}">
+        <!-- Campo de selección de fechas -->
+        <label for="fecha_inicio">Fecha Inicio:</label>
+        <input type="date" id="fecha_inicio" name="fecha_inicio">
+
+        <label for="fecha_fin" style="margin-left: 10px;">Fecha Fin:</label>
+        <input type="date" id="fecha_fin" name="fecha_fin">
+
+        <!-- Campo de selección de proveedores a crédito o contado -->
+        <label for="tipo_pago" style="margin-left: 10px;">Tipo de Pago:</label>
+        <select id="tipo_pago" name="tipo_pago">
+            <option value="credito">Crédito</option>
+            <option value="contado">Contado</option>
+        </select>
+
+        <!-- Botón de filtrar -->
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </form>
+
+    <!-- Usar la clase "table" de Bootstrap solo para la tabla -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th style="display: none;">ID</th>
+                <th>Fecha</th>
+                <th>Proveedor</th>
+                <th>Fecha de Expiración</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factura in facturas %}
+            <tr>
+                <td style="display: none;">{{ factura.invo_id }}</td>
+                <td>{{ factura.invo_date }}</td>
+                <td>{{ factura.invo_prov_id.prov_name }}</td>
+                <td>{{ factura.expedition_date }}</td>
+                <td>
+                    <div class="btn-container">
+                        <form method="get" action="{% url 'listarDetalleFactura' factura.invo_id %}">
+                            <button type="submit" class="btn btn-info btn-action">Ver Factura</button>
+                        </form>                        
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% endblock %}
+
+</body>
+
+</html>

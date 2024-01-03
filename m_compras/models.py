@@ -78,35 +78,57 @@ class Providers(models.Model):
 
 
 class Invoice(models.Model):
-    invo_id = models.AutoField(primary_key=True)
+    invo_id = models.CharField(max_length=16, default="new_invoice_invo_id_seq", primary_key=True)
     invo_date = models.DateField()
-    user_id = models.IntegerField()  # Ajusta según tus necesidades
+    user_id = models.CharField(max_length=10)
     expedition_date = models.DateField()
-    invo_prov = models.ForeignKey(Providers, on_delete=models.CASCADE)
-    invo_pay_type = models.ForeignKey(PayType, on_delete=models.CASCADE)
-
+    invo_prov_id = models.ForeignKey(Providers, on_delete=models.CASCADE, db_column='invo_prov_id')
+    invo_pay_type = models.ForeignKey(PayType, on_delete=models.CASCADE, db_column='invo_pay_type')
+    
     class Meta:
         managed = False
         db_table = 'invoice'
 
-    def __str__(self):
-        return f"Factura #{self.invo_id}"
+    def _str_(self):
+        return self.pay_name
+    
+    def _str_(self):
+        return f"Invoice ID: {self.invo_id}, Date: {self.invo_date}"
 
 
 class InvoiceDetail(models.Model):
-    ivo_det_id = models.AutoField(primary_key=True)
+    ivo_det_id = models.IntegerField(primary_key=True)
     prod_id = models.IntegerField()
     quantity_invo_det = models.IntegerField()
-    invo_price_unit = models.DecimalField(max_digits=10, decimal_places=2)
-    invo_det_invo = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    invo_det_invo_id = models.ForeignKey(Invoice, on_delete=models.CASCADE, db_column='invo_det_invo_id')
+    
+    def __str__(self):
+        return f"Invoice Detail ID: {self.ivo_det_id}, Product ID: {self.prod_id}, Quantity: {self.quantity_invo_det}"
 
     class Meta:
         managed = False
-        db_table = 'Invoice_detail'
+        db_table = "Invoice_detail"
 
-    def __str__(self):
+    def str(self):
         return f"Detalle de Factura #{self.ivo_det_id}"
+
+
+class Product(models.Model):
+    prod_id=models.AutoField(primary_key=True)
+    prod_name=models.CharField(max_length=255)
+    prod_descripcion=models.CharField(max_length=300)
+    prod_cost=models.DecimalField(max_digits=10, decimal_places=2)
+    prod_pvp=models.DecimalField(max_digits=10, decimal_places=2)
+    prod_state=models.BooleanField()
+    prod_iva=models.BooleanField()
+    class Meta:
+        managed = False
+        db_table = 'Product'
+
+    def _str_(self):
+        return f"Producto #{self.prod_id}"
     
+
 
 # Define the Personal model
 class Personal(models.Model):

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+  <h2>Listar Detalle Factura</h2>
+
+  <!-- Mostrar información del cliente, fecha y tipo de pago -->
+  <p>
+    Cliente: {{ info_factura.cliente_nombre }} | Fecha: {{ info_factura.fecha }} | Tipo de Pago: {{ info_factura.tipo_pago }}
+    <!-- Mostrar la Fecha de Expiración solo si el pay_type es "Credito" -->
+    {% if info_factura.tipo_pago == 'Credito' %}
+      | Fecha de Expiración: {{ info_factura.fecha_expiracion|default:'Desconocida' }}
+    {% endif %}
+  </p>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Producto</th>
+        <th scope="col">Cantidad</th>
+        <th scope="col">Precio Unidad</th>
+        <th scope="col">Precio Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for detalle in detalles %}
+        <tr>
+          <th>{{ forloop.counter }}</th>
+          <!-- Cambio para mostrar el nombre del producto obtenido de la API -->
+          <td>{{ detalle.producto_nombre|default:'Desconocido' }}</td>
+          <td>{{ detalle.quantity_invo_det }}</td>
+          <!-- Asegúrate de que 'precio_unidad' se pasa correctamente a la vista -->
+          <td>{{ detalle.precio_unidad|default:'Desconocido' }}</td>
+          <td>{{ detalle.precio_total }}</td>
+        </tr>
+      {% endfor %}
+      <!-- Fila para mostrar el total -->
+      <!-- Fila para mostrar el total -->
+      <tr>
+        <th colspan="4">Total</th>
+        <!-- Calcular la suma de la columna 'Precio Total' de manera compatible con tu versión de Django -->
+        <!-- Resto de tu código... -->
+        <!-- Resto de tu código... -->
+
+        <td>
+          {% with detalles_precios=detalles|make_list total=0 %}
+              {% for detalle in detalles_precios %}
+                  {% if detalle.precio_unidad %}
+                      {% with subtotal=detalle.cantidad|add:detalle.precio_unidad %}
+                          {% with total=total|add:subtotal %}
+                          {% endwith %}
+                      {% endwith %}
+                  {% endif %}
+              {% endfor %}
+          {% endwith %}
+          {{ total|floatformat:2 }}
+      </td>
+
+        <!-- Resto de tu código... -->
+
+        <!-- Resto de tu código... -->
+      </tr>
+    </tbody>
+  </table>
+{% endblock %}
