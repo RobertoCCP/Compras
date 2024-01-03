@@ -10,6 +10,7 @@
       <link rel="stylesheet" href="{% static 'css/detalle2.css' %}" />
       <!-- ... (otras etiquetas meta, title, etc.) ... -->
       <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+      
     </head>
     <body>
       <div class="container">
@@ -30,11 +31,11 @@
                   <input type="number" id="quantity{{ product.pro_id }}" name="quantity{{ product.pro_id }}" value="1" min="1" />
                 </div>
                 <button class="add-to-cart" onclick="addProductToInvoiceDetail(
-            '{{ product.pro_id }}',
-            '{{ product.pro_name }}',
-            '{{ product.pro_pvp }}',
-            '{{ product.pro_stock }}',
-            '{{ product.pro_iva|lower }}')">Agregar al Carrito</button>
+                  '{{ product.pro_id }}',
+                  '{{ product.pro_name }}',
+                  '{{ product.pro_pvp }}',
+                  '{{ product.pro_stock }}',
+                  '{{ product.pro_iva|lower }}')">Agregar al Carrito</button>
               </div>
             </div>
           {% endfor %}
@@ -42,8 +43,9 @@
       </div>
       <div id="espacio"></div>
       <form method="get" action="{% url 'detalle' %}" id="searchForm">
+        {% csrf_token %}
         <h3>Datos del Proveedor</h3>
-        <input type="text" id="dni" name="dni" placeholder="Ingrese el DNI del proveedor" value="{{ provider.prov_dni }}">
+        <input type="text" id="dni" name="dni" placeholder="Ingrese el DNI del proveedor" value="{{ provider.prov_dni }}" />
         <button type="button" onclick="searchProvider()">Buscar</button>
 
         <!-- Agregar esta sección para mostrar errores si existen -->
@@ -56,7 +58,7 @@
             <label for="prov_name">Nombre:</label>
             <div id="prov_name" class="value-box">{{ provider.prov_name }}</div>
           </div>
-        
+
           <div class="form-group">
             <label for="prov_dni">Cédula/RUC:</label>
             <div id="prov_dni" class="value-box">{{ provider.prov_dni }}</div>
@@ -94,9 +96,117 @@
         </div>
       </form>
 
+      <!-- Tabla para mostrar los productos agregados -->
+      <h3>Productos Agregados</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="added-products-table-body">
+          <!-- Aquí se mostrarán los productos agregados dinámicamente -->
+        </tbody>
+      </table>
+      
+      <button id="register-button" onclick="registerInvoice()">Registrar</button>
+
+      <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
       <script>
+        var invoiceData;  // Declara la variable globalmente
+        function registerInvoice() {
+          var dni = document.getElementById('dni').value
+          console.log(dni)
+          // Verificar la existencia del proveedor
+          $.ajax({
+            url: '{% url "verificar_proveedor" %}',
+            data: { dni: dni },
+            dataType: 'json',
+            success: function (data) {
+              if ('error' in data) {
+                alert(data['error'])
+              } else {
+                // Crear la factura y su detalle
+                console.log('Antes de llamar a createInvoice');
+                createInvoice(data['prov_id']);
+                console.log('Después de llamar a createInvoice');
+              }
+            },
+            error: function (error) {
+              console.log(error)
+            }
+          })
+        }
+        
+        function createInvoice(provId) {
+          // Obtener la fecha actual
+          var currentDate = new Date().toISOString().split('T')[0]
+        
+          // Datos para la inserción en la tabla "Invoice"
+          var invoiceData = {
+            invo_date: currentDate,
+            user_id: 'user_id_value', // Reemplaza con el valor adecuado
+            expedition_date: currentDate,
+            invo_prov_id: provId, // Proveedor obtenido de la verificación
+            invo_pay_type: 'pay_type_value' // Reemplaza con el valor adecuado
+          }
+        
+          // Obtener el token CSRF del formulario
+          var csrfToken = $('[name=csrfmiddlewaretoken]').val()
+        
+          // Insertar en la tabla "Invoice"
+          // Insertar en la tabla "Invoice" incluyendo el token CSRF
+          $.ajax({
+            url: '{% url "insertar_invoice" %}', // Reemplaza "insertar_invoice" con la URL de tu vista
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCookie('csrftoken') // Obtener el token CSRF de la cookie
+            },
+            data: invoiceData,
+            success: function (invoiceResult) {
+              // Invoice creado exitosamente
+              alert('Factura creada exitosamente')
+            },
+            error: function (error) {
+              console.log(error)
+            }
+          })
+        
+          // Función para obtener el valor de una cookie por nombre
+          function getCookie(name) {
+            var cookieValue = null
+            if (document.cookie && document.cookie !== '') {
+              var cookies = document.cookie.split(';')
+              for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim()
+                // Buscar la cookie por nombre
+                if (cookie.substring(0, name.length + 1) === name + '=') {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+                  break
+                }
+              }
+            }
+            return cookieValue
+          }
+        }
+        console.log(invoiceData)
+      </script>
+
+      <script>
+        function addProductToInvoiceDetail(productId, productName, price, stock, iva) {
+          var quantity = $('#quantity' + productId).val()
+          var total = quantity * price
+        
+          var newRow = '<tr>' + '<td>' + productName + '</td>' + '<td>' + quantity + '</td>' + '<td>$' + price + '</td>' + '<td>$' + total + '</td>' + '</tr>'
+        
+          $('#added-products-table-body').append(newRow)
+        }
+        
         function searchProvider() {
-          var dni = document.getElementById('dni').value;
+          var dni = document.getElementById('dni').value
         
           $.ajax({
             url: '{% url "detalle" %}',
@@ -104,22 +214,21 @@
             dataType: 'json',
             success: function (data) {
               if ('error' in data) {
-                alert(data['error']);
+                alert(data['error'])
               } else {
-                // Actualizar los valores en los campos correspondientes
                 for (var field in data) {
                   if (data.hasOwnProperty(field)) {
-                    $("#" + field).text(data[field]);
+                    $('#' + field).text(data[field])
                   }
                 }
               }
             },
             error: function (error) {
-              console.log(error);
+              console.log(error)
             }
-          });
+          })
         }
       </script>
     </body>
   </html>
-{% endblock %}
+{% endblock %}

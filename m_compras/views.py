@@ -1,3 +1,4 @@
+from audioop import reverse
 from io import StringIO
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404, redirect
@@ -13,7 +14,6 @@ from .models import Personal
 from django.http.response import JsonResponse
 import json
 from django.conf import settings
-from django.shortcuts import render, get_object_or_404, redirect
 import requests
 # Create your views here.
 
@@ -183,6 +183,7 @@ class ProvidersListCreateView(generics.ListCreateAPIView):
 
 from django.views.generic.edit import CreateView
 from .models import Providers
+from .serializers import InvoiceDetailSerializer
 
 class ProviderCreateView(CreateView):
     model = Providers
@@ -192,6 +193,10 @@ class ProviderCreateView(CreateView):
     def form_valid(self, form):
         form.instance.save(user_id=self.request.user.id)  # Asegúrate de tener el usuario disponible en tu vista
         return super().form_valid(form)
+
+class InvoiceDetailListCreate(generics.ListCreateAPIView):
+    queryset = InvoiceDetail.objects.all()
+    serializer_class = InvoiceDetailSerializer
 
 
 
@@ -335,3 +340,65 @@ def get_producto_precio(productos_api, prod_id):
     producto = next((p for p in productos_api if p["pro_id"] == prod_id), None)
     precio_str = producto["pro_cost"] if producto else "0"  # Considera un valor por defecto
     return float(precio_str)
+
+def verificar_proveedor(request):
+    dni = request.GET.get('dni', None)
+
+    try:
+        provider = Providers.objects.get(prov_dni=dni)
+        data = {'prov_id': provider.prov_id}
+        return JsonResponse(data)
+    except Providers.DoesNotExist:
+        error = {'error': 'Proveedor no encontrado.'}
+        return JsonResponse(error)
+    
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from .models import Invoice
+
+@require_POST
+def insertar_invoice(request):
+    # Obtener los datos del formulario
+    invo_id = request.POST.get('invo_id')
+    user_id = request.POST.get('user_id')
+    invo_prov_id = request.POST.get('invo_prov_id')
+    invo_pay_type = request.POST.get('invo_pay_type')
+
+    # La fecha actual para `invo_date` y `expedition_date`
+    current_date = timezone.now()
+
+    try:
+        # Crear una nueva instancia de Invoice y guardarla
+        Invoice.objects.create(
+            invo_id=invo_id,
+            invo_date=current_date,
+            user_id=user_id,
+            expedition_date=current_date,
+            invo_prov_id=invo_prov_id,
+            invo_pay_type=invo_pay_type
+        )
+        # Redirigir a alguna vista de éxito o a la lista de facturas
+        return redirect(reverse('invoice_read'))
+    except Exception as e:
+        # Manejar el error, posiblemente mostrando un mensaje al usuario
+        # Redirigir a una página de error o mostrar un mensaje en la misma página
+        return redirect(reverse('listarDetalleFactura'))
+
+@require_POST
+def insertar_invoice_detail(request):
+    prod_id = request.POST.get('prod_id', None)
+    quantity_invo_det = request.POST.get('quantity_invo_det', None)
+    invo_det_invo_id = request.POST.get('invo_det_invo_id', None)
+
+    try:
+        invoice_detail = InvoiceDetail.objects.create(
+            prod_id=prod_id,
+            quantity_invo_det=quantity_invo_det,
+            invo_det_invo_id=invo_det_invo_id
+        )
+        data = {'ivo_det_id': invoice_detail.ivo_det_id}
+        return JsonResponse(data)
+    except Exception as e:
+        error = {'error': str(e)}
+        return JsonResponse(error)
