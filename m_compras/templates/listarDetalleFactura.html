@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
-
 {% block content %}
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+  <link rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
   <h2>Listar Detalle Factura</h2>
-
+{% load static %}
+ <link rel="stylesheet" href="{% static 'css/detf.css' %}">
   <!-- Mostrar información del cliente, fecha y tipo de pago -->
   <p>
     Cliente: {{ info_factura.cliente_nombre }} | Fecha: {{ info_factura.fecha }} | Tipo de Pago: {{ info_factura.tipo_pago }}
