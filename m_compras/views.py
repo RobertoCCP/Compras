@@ -309,88 +309,98 @@ from .forms import ProviderSearchForm
 from datetime import datetime
 from django.http import HttpResponse
 
+from django.db import OperationalError, connections
+from psycopg2 import OperationalError as Psycopg2OpError
 
 def consultar_facturas(request):
-    search_query = request.GET.get("search", "")
-    orden = request.GET.get("ordenar", "invo_date")  # Orden por defecto
-
-    # Mapeo de los campos para el ordenamiento
-    campos_ordenamiento = {
-        'fecha': 'invo_date',
-        'proveedor': 'invo_prov_id__prov_name',
-        'expiracion': 'expedition_date',
-        'tipo': 'invo_pay_type',
-    }
-
-    campo_orden_base = orden.replace('-', '')
-    campo_orden = campos_ordenamiento.get(campo_orden_base, 'invo_date')
-    direccion_orden = "-" if orden.startswith('-') else ""
-
-    # Obtener fechas del formulario
-    fecha_inicio = request.GET.get("fecha_inicio")
-    fecha_fin = request.GET.get("fecha_fin")
-
-    # Obtener tipo de pago del formulario
-    tipo_pago = request.GET.get("type_pay")
-
-    # Construir la consulta
-    facturas_list = Invoice.objects.all()
-
-    if fecha_inicio and fecha_fin:
-        fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
-        fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-        facturas_list = facturas_list.filter(invo_date__range=(fecha_inicio, fecha_fin))
-
-    if tipo_pago:
-        tipo_pago_valor = 1 if tipo_pago == "credito" else 2
-        facturas_list = facturas_list.filter(invo_pay_type=tipo_pago_valor)
-
-    if search_query:
-        facturas_list = facturas_list.filter(
-            Q(invo_prov_id__prov_name__icontains=search_query)
-            # Agrega otros criterios de búsqueda según tus necesidades
-        )
-
-    facturas_list = facturas_list.order_by(direccion_orden + campo_orden)
-
-    # Configurar el paginador
-    paginator = Paginator(facturas_list, 8)
-
-    # Obtener el número de página de la solicitud GET
-    page = request.GET.get("page")
-
     try:
-        facturas = paginator.page(page)
-    except PageNotAnInteger:
-        facturas = paginator.page(1)
-    except EmptyPage:
-        facturas = paginator.page(paginator.num_pages)
+        # Tu código que interactúa con la base de datos aquí
+            search_query = request.GET.get("search", "")
+            orden = request.GET.get("ordenar", "invo_date")  # Orden por defecto
 
-    if not facturas_list.exists():
-        mensaje = "No hay facturas que coincidan con los criterios de búsqueda."
+            # Mapeo de los campos para el ordenamiento
+            campos_ordenamiento = {
+                'fecha': 'invo_date',
+                'proveedor': 'invo_prov_id__prov_name',
+                'expiracion': 'expedition_date',
+                'tipo': 'invo_pay_type',
+            }
 
-        if fecha_inicio and fecha_fin and tipo_pago:
-            mensaje = f"No hay facturas con tipo de pago '{tipo_pago}' en el rango de fechas proporcionado."
-        elif fecha_inicio and fecha_fin:
-            mensaje = "No hay facturas en el rango de fechas proporcionado."
-        elif tipo_pago:
-            mensaje = f"No hay facturas con tipo de pago '{tipo_pago}'."
+            campo_orden_base = orden.replace('-', '')
+            campo_orden = campos_ordenamiento.get(campo_orden_base, 'invo_date')
+            direccion_orden = "-" if orden.startswith('-') else ""
 
-        if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-            return HttpResponse(json.dumps({'mensaje': mensaje}), content_type='application/json')
+            # Obtener fechas del formulario
+            fecha_inicio = request.GET.get("fecha_inicio")
+            fecha_fin = request.GET.get("fecha_fin")
 
-        # Muestra el mensaje de alerta
-        return render(
-            request,
-            "invoice_read.html",
-            {"mensaje_alerta": mensaje}
-        )
+            # Obtener tipo de pago del formulario
+            tipo_pago = request.GET.get("type_pay")
 
-    return render(
-        request,
-        "invoice_read.html",
-        {"facturas": facturas, "search_query": search_query, "orden_actual": orden},
-    )
+            # Construir la consulta
+            facturas_list = Invoice.objects.all()
+
+            if fecha_inicio and fecha_fin:
+                fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+                fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+                facturas_list = facturas_list.filter(invo_date__range=(fecha_inicio, fecha_fin))
+
+            if tipo_pago:
+                tipo_pago_valor = 1 if tipo_pago == "credito" else 2
+                facturas_list = facturas_list.filter(invo_pay_type=tipo_pago_valor)
+
+            if search_query:
+                facturas_list = facturas_list.filter(
+                    Q(invo_prov_id__prov_name__icontains=search_query)
+                    # Agrega otros criterios de búsqueda según tus necesidades
+                )
+
+            facturas_list = facturas_list.order_by(direccion_orden + campo_orden)
+
+            # Configurar el paginador
+            paginator = Paginator(facturas_list, 8)
+
+            # Obtener el número de página de la solicitud GET
+            page = request.GET.get("page")
+
+            try:
+                facturas = paginator.page(page)
+            except PageNotAnInteger:
+                facturas = paginator.page(1)
+            except EmptyPage:
+                facturas = paginator.page(paginator.num_pages)
+
+            if not facturas_list.exists():
+                mensaje = "No hay facturas que coincidan con los criterios de búsqueda."
+
+                if fecha_inicio and fecha_fin and tipo_pago:
+                    mensaje = f"No hay facturas con tipo de pago '{tipo_pago}' en el rango de fechas proporcionado."
+                elif fecha_inicio and fecha_fin:
+                    mensaje = "No hay facturas en el rango de fechas proporcionado."
+                elif tipo_pago:
+                    mensaje = f"No hay facturas con tipo de pago '{tipo_pago}'."
+
+                if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+                    return HttpResponse(json.dumps({'mensaje': mensaje}), content_type='application/json')
+
+                # Muestra el mensaje de alerta
+                return render(
+                    request,
+                    "invoice_read.html",
+                    {"mensaje_alerta": mensaje}
+                )
+
+            return render(
+                request,
+                "invoice_read.html",
+                {"facturas": facturas, "search_query": search_query, "orden_actual": orden},
+            )
+
+    except (OperationalError, Psycopg2OpError) as e:
+        # Manejar la desconexión de la base de datos
+        connection = connections['default']
+        connection.close()
+        connection.connect()
 
 def listarDetalleFactura(request, factura_id):
     # Obtener la instancia de Invoice
