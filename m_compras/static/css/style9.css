@@ -1,3 +1,9 @@
+:root {
+  --classic-blue: #34558B;
+  --living-coral: #FF6F61;
+  --grayed-jade: #9C9A77;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -8,8 +14,7 @@
   }
   
   body {
-    background: rgb(0,36,1);
-    background: linear-gradient(90deg, rgba(0,36,1,1) 0%, rgba(9,121,93,1) 0%, rgba(7,94,80,1) 51%, rgba(0,212,255,1) 100%);
+    background-color: var(--classic-blue);
     margin: 0;
   }
   

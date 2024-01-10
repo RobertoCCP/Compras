@@ -9,9 +9,7 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap"
       rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
-  <title>Dashboard</title>
-  <title>Menu Compras</title>
-  <link rel="stylesheet" href="{% static 'css/style9.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0-2/css/all.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" charset="utf-8"></script>
 </head>
@@ -24,12 +22,12 @@
     <div class="header">
       
       <div class="header-menu">
-        <div class="title">Modulo <span>Compras</span></div>
+        <div class="title">Módulo <span>Compras</span></div>
         <div class="sidebar-btn">
           <i class="fas fa-bars"></i>
         </div>
         <ul>
-          <a href="{% url 'logout' %}" class="logout_btn">Salir</a>
+          <li><a href="{% url 'logout' %}"><i class="fas fa-power-off"></i></a></li>
       </ul>
       </div>
       
@@ -40,11 +38,11 @@
       <div class="sidebar-menu">
         <center class="profile">
           <img src="{% static 'images/img1.jpg'%}" class="profile_image" alt="">
-          <p>Modulo Compras</p>
+          <p>Módulo de Compras</p>
         </center>
         <li class="item">
           <a href="{% url 'dashboard' %}" class="Dashboard">
-            <i class="fas fa-desktop"></i><span>Dashboard</span>
+            <i class="fa fa-desktop text-red"></i><span>Dashboard</span>
           </a>
         </li>
         <li class="item" id="proveedores">
@@ -58,7 +56,7 @@
           </a>
         </li>
         <li class="item" id="detalle">
-          <a href="{% url 'detalle' %}" class="Dashboard">
+          <a href="{% url 'invoice_insert' %}" class="Dashboard">
             <i class="fa fa-info-circle text-green"></i><span>Detalle de facturas</span></a>
           </a>
         </li>

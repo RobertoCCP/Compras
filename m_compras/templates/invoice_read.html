@@ -1,63 +1,64 @@
 {% extends 'base.html' %}
-
 {% load static %}
-
 {% block content %}
-
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
+<title>Lista Facturas</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
 
     <!-- Enlace al archivo de estilos de Bootstrap solo para las tablas y los botones -->
-    <link rel="stylesheet" href="{% static 'css/facturas.css' %}">
-</head>
+    <link rel="stylesheet" href="{% static 'css/listafactura.css' %}">
 
 <body>
 
     <h1>Lista de Facturas</h1><br>
     <form method="get" action=""> 
-        <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo</button>
+        <button type="submit" class="btn btn-success" style="margin-right: 10px;">Lista general</button>
     </form>
 
-    <form method="get" action="{% url 'consultar_facturas' %}">
-        <!-- Campo de selección de fechas -->
-        <label for="fecha_inicio">Fecha Inicio:</label>
-        <input type="date" id="fecha_inicio" name="fecha_inicio">
-
-        <label for="fecha_fin" style="margin-left: 10px;">Fecha Fin:</label>
-        <input type="date" id="fecha_fin" name="fecha_fin">
-
-        <!-- Campo de selección de proveedores a crédito o contado -->
-        <label for="tipo_pago" style="margin-left: 10px;">Tipo de Pago:</label>
-        <select id="tipo_pago" name="tipo_pago">
-            <option value="credito">Crédito</option>
-            <option value="contado">Contado</option>
-        </select>
-
-        <!-- Botón de filtrar -->
+    <form id="fecha" method="get" action="{% url 'consultar_facturas' %}">
+        <div class="form-group">
+            <label for="fecha_inicio">Fecha Inicio:</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio">
+        </div>
+    
+        <div class="form-group">
+            <label for="fecha_fin">Fecha Fin:</label>
+            <input type="date" id="fecha_fin" name="fecha_fin">
+        </div>
+    
+        <div class="form-group">
+            <label for="tipo_pago">Tipo de Pago:</label>
+            <select id="tipo_pago" name="tipo_pago">
+                <option value="credito">Crédito</option>
+                <option value="contado">Contado</option>
+            </select>
+        </div>
+    
         <button type="submit" class="btn btn-primary">Filtrar</button>
     </form>
+
+    <form id="search-form" method="get" action="{% url 'consultar_facturas' %}"
+    style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
+    <input type="text" id="search-input" name="search" placeholder="Buscar..."
+        style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+    <button class="material-icons-outlined search-icon" style="margin-left: 10px;">search</button>
+</form>
 
     <!-- Usar la clase "table" de Bootstrap solo para la tabla -->
     <table class="table">
         <thead>
             <tr>
                 <th style="display: none;">ID</th>
-                <th>Fecha</th>
-                <th>Proveedor</th>
-                <th>Fecha de Expiración</th>
-                <th>Acciones</th>
+                <th>Acciones <i class="fas fa-sort" onclick="ordenarPor('acciones')"></i></th>
+                <th>Fecha <i class="fas fa-sort" onclick="ordenarPor('fecha')"></i></th>
+                <th>Proveedor <i class="fas fa-sort" onclick="ordenarPor('proveedor')"></i></th>
+                <th>Fecha de Expiración <i class="fas fa-sort" onclick="ordenarPor('expiracion')"></i></th>
+                <th>Tipo <i class="fas fa-sort" onclick="ordenarPor('tipo')"></i></th>
             </tr>
         </thead>
         <tbody>
             {% for factura in facturas %}
             <tr>
                 <td style="display: none;">{{ factura.invo_id }}</td>
-                <td>{{ factura.invo_date }}</td>
-                <td>{{ factura.invo_prov_id.prov_name }}</td>
-                <td>{{ factura.expedition_date }}</td>
                 <td>
                     <div class="btn-container">
                         <form method="get" action="{% url 'listarDetalleFactura' factura.invo_id %}">
@@ -65,13 +66,85 @@
                         </form>                        
                     </div>
                 </td>
+                <td>{{ factura.invo_date }}</td>
+                <td>{{ factura.invo_prov_id.prov_name }}</td>
+                <td>{{ factura.expedition_date }}</td>
+                <td>{{ factura.invo_pay_type }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+ <!-- Paginación -->
+ <div class="pagination">
+    <span class="step-links">
+        {% if facturas.has_previous %}
+        <a href="?page=1"><i class="fas fa-angle-double-left"></i></a>
+        <a href="?page={{ facturas.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
+        {% endif %}
+
+        <span class="current">
+            Página {{ facturas.number }} de {{ facturas.paginator.num_pages }}.
+        </span>
+
+        {% if facturas.has_next %}
+        <a href="?page={{ facturas.next_page_number }}"><i class="fas fa-angle-right"></i></a>
+        <a href="?page={{ facturas.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
+        {% endif %}
+    </span>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Función para realizar la búsqueda
+        function performSearch() {
+            var searchQuery = $('#search-input').val();
+            $.ajax({
+                url: $('#search-form').attr('action'),
+                type: 'GET',
+                data: { 'search': searchQuery },
+                success: function (data) {
+                    $('#facturas-table').html(data);
+                },
+                error: function () {
+                    console.error('Error al realizar la solicitud AJAX');
+                }
+            });
+        }
+
+        // Escuchar al evento input en el campo de búsqueda
+        $('#search-input').on('input', function () {
+            performSearch();
+        });
+
+        // Escuchar al evento click en el ícono de búsqueda
+        $('.search-icon').on('click', function () {
+            performSearch();
+        });
+    });
+</script>
+
+<script>
+    function ordenarPor(campo) {
+        var url = new URL(window.location);
+        var ordenActual = url.searchParams.get("ordenar");
+        var nuevoOrden = campo;
+
+        // Cambia a orden descendente si ya estaba ordenado ascendentemente por el mismo campo
+        if (ordenActual === campo) {
+            nuevoOrden = "-" + campo;
+        } else if (ordenActual === "-" + campo) {
+            nuevoOrden = campo;  // Vuelve a orden ascendente si estaba en descendente
+        }
+
+        url.searchParams.set("ordenar", nuevoOrden);
+        window.location = url;
+    }
+</script>
+</body>
 
     {% endblock %}
 
-</body>
 
-</html>
+
+

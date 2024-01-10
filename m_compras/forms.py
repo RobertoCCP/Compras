@@ -40,3 +40,8 @@ class EditInvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = '__all__'
+
+class InvoiceForm(forms.ModelForm):
+    class Meta:
+        model = Invoice
+        fields = ['invo_date', 'user_id', 'expedition_date', 'invo_prov_id', 'invo_pay_type']

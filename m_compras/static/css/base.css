@@ -1,0 +1,294 @@
+:root {
+    --classic-blue: #34558B;
+    --living-coral: #FF6F61;
+    --grayed-jade: #9C9A77;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+body {
+    background: rgb(255, 255, 255);
+    background: linear-gradient(90deg, rgb(255, 255, 255) 50%, rrgb(255, 255, 255)100%);
+    margin: 0;
+}
+
+.wrapper .header {
+    z-index: 1;
+    /*background-image: linear-gradient(to bottom, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8, #52cffe, #41dfff, #46eefa, #5ffbf1);
+      background-image: linear-gradient(135deg, #ffac00 0, #ff9a1c 10%, #ff872e 20%, #ff733a 30%, #ff5d41 40%, #f94646 50%, #e33049 60%, #ce1a4b 70%, #bb004e 80%, #aa0051 90%, #9c0055 100%);*/
+    background: rgb(249, 95, 0);
+    background: linear-gradient(90deg, rgba(249, 95, 0, 0.8660714285714286) 0%, rgba(227, 140, 40, 1) 50%);
+    position: fixed;
+    width: 100%;
+    height: 70px;
+    display: flex;
+    top: 0;
+}
+
+.wrapper .header .header-menu {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.wrapper .header .header-menu .title {
+    color: #ff0000;
+    font-size: 25px;
+    text-transform: uppercase;
+    font-weight: 900;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+
+}
+
+.wrapper .header .header-menu .title span {
+    color: #ffffff;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+
+}
+
+.wrapper .header .header-menu .sidebar-btn {
+    color: #ffffff;
+    position: absolute;
+    margin-left: 240px;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: 0.3s color;
+
+}
+
+.wrapper .header .header-menu .sidebar-btn:hover {
+    color: #ff4444;
+}
+
+.wrapper .header .header-menu ul {
+    display: flex;
+}
+
+.wrapper .header .header-menu ul li a {
+    background: #fff;
+    color: #000;
+    display: block;
+    margin: 0 10px;
+    font-size: 18px;
+    width: 34px;
+    height: 34px;
+    line-height: 35px;
+    text-align: center;
+    border-radius: 50%;
+    transition: 0.3s background, color;
+}
+
+.wrapper .header .header-menu ul li a:hover {
+    background: #ff0000;
+    color: #fff;
+}
+
+.wrapper .sidebar {
+    z-index: 1;
+    background: rgb(249, 95, 0);
+    background: linear-gradient(90deg, rgba(249, 95, 0, 0.8660714285714286) 0%, rgba(227, 140, 40, 1) 50%);
+    position: fixed;
+    top: 70px;
+    width: 250px;
+    height: calc(100% - 70px);
+    transition: 0.3s width;
+    overflow-y: auto;
+}
+
+.wrapper .sidebar .sidebar-menu {
+    overflow: hidden;
+}
+
+.wrapper .sidebar .sidebar-menu .profile img {
+    margin: 20px 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+.wrapper .sidebar .sidebar-menu .profile p {
+    color: #ffffff;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+.wrapper .sidebar .sidebar-menu .item {
+    width: 250px;
+    overflow: hidden;
+}
+
+.wrapper .sidebar .sidebar-menu .item .Dashboard {
+    display: block;
+    color: #ffffff;
+    position: relative;
+    padding: 25px 20px;
+    transition: 0.3s color;
+    font-weight: bold; /* Hace que el texto sea en negrita */
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; /* Crea un borde negro alrededor de las letras */
+}
+
+
+.wrapper .sidebar .sidebar-menu .item .Dashboard:hover {
+    color:#ff4444;
+}
+
+.wrapper .sidebar .sidebar-menu .item .Dashboard i {
+    margin-right: 20px;
+}
+
+.wrapper .sidebar .sidebar-menu .item .Dashboard .drop-down {
+    float: right;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.wrapper .sidebar .sidebar-menu .item .sub-menu {
+    background: #34558B;
+    overflow: hidden;
+    max-height: 0;
+    transition: 0.3s background, max-height;
+}
+
+.wrapper .sidebar .sidebar-menu .item .sub-menu a {
+    display: block;
+    position: relative;
+    color: #fff;
+    white-space: nowrap;
+    font-size: 15px;
+    padding: 20px;
+    transition: 0.3s background;
+}
+
+.wrapper .sidebar .sidebar-menu .item .sub-menu a:hover {
+    background: #f05555;
+}
+
+.wrapper .sidebar .sidebar-menu .item .sub-menu a:not(last-child) {
+    border-bottom: 1px solid #8FC5E9;
+}
+
+.wrapper .sidebar .sidebar-menu .item .sub-menu i {
+    padding-right: 20px;
+    font-size: 10px;
+}
+
+.wrapper .sidebar .sidebar-menu .item:target .sub-menu {
+    max-height: 500px;
+}
+
+.wrapper .main-container {
+    width: calc(100% - 250px);
+    margin-top: 70px;
+    margin-left: 250px;
+    padding: 15px;
+    background: rgb(255, 255, 255);
+    background: linear-gradient(90deg, rgb(255, 255, 255) 50%, rrgb(255, 255, 255)100%);
+    background-size: cover;
+    height: 90.7vh;
+    transition: 0.3s;
+}
+
+.wrapper.collapse .sidebar {
+    width: 70px;
+}
+
+.wrapper.collapse .sidebar .profile img,
+.wrapper.collapse .sidebar .profile p,
+.wrapper.collapse .sidebar a span {
+    display: none;
+}
+
+.wrapper.collapse .sidebar .sidebar-menu .item .Dashboard {
+    font-size: 23px;
+}
+
+.wrapper.collapse .sidebar .sidebar-menu .item .sub-menu i {
+    font-size: 18px;
+    padding-left: 3px;
+}
+
+.wrapper.collapse .main-container {
+    width: calc(100% - 70px);
+    margin-left: 70px;
+}
+
+.wrapper .main-container .card {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+/* Repeated styles removed */
+
+/* New styles added for responsiveness */
+
+.material-icons-outlined {
+    vertical-align: middle;
+    line-height: 1px;
+}
+
+.text-primary {
+    color: #666666;
+}
+
+.text-blue {
+    color: #246dec;
+}
+
+.text-red {
+    color: #cc3c43;
+}
+
+.text-green {
+    color: #367952;
+}
+
+.text-orange {
+    color: #f5b74f;
+}
+
+.font-weight-bold {
+    font-weight: 600;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 260px 1fr 1fr 1fr;
+    grid-template-rows: 0.2fr 3fr;
+    grid-template-areas: "sidebar header header header" "sidebar main main main";
+    height: 100vh;
+}
+
+/* ---------- SCROLLBARS ---------- */
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px #a5aaad;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #4f35a1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #a5aaad;
+}

@@ -93,7 +93,62 @@
           </div>
         </div>
       </form>
-
+    
+      <div class="right-side">
+        <!-- Nuevo formulario -->
+        <form>
+          <div class="form-group">
+            <label for="productoId">Producto Id:</label>
+            <input type="text" id="productoId" class="form-control" name="productoId">
+          </div>
+    
+          <div class="form-group">
+            <label for="cantidad">Cantidad:</label>
+            <input type="number" id="cantidad" class="form-control" name="cantidad">
+          </div>
+    
+          <div class="form-group">
+            <label for="nombreProducto">Nombre Producto:</label>
+            <input type="text" id="nombreProducto" class="form-control" name="nombreProducto">
+          </div>
+    
+          <div class="form-group">
+            <label for="precioUnitario">Precio Unitario:</label>
+            <input type="number" id="precioUnitario" class="form-control" name="precioUnitario">
+          </div>
+    
+          <div class="form-group">
+            <label for="incluyeIva">Incluye IVA:</label>
+            <select id="incluyeIva" class="form-control" name="incluyeIva">
+              <option value="si">Sí</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+    
+          <div class="form-group">
+            <label for="porcentajeIva">Porcentaje IVA:</label>
+            <input type="number" id="porcentajeIva" class="form-control" name="porcentajeIva">
+          </div>
+    
+          <div class="form-group">
+            <label for="subtotalIva">Subtotal IVA:</label>
+            <input type="number" id="subtotalIva" class="form-control" name="subtotalIva" readonly>
+          </div>
+    
+          <div class="form-group">
+            <label for="subtotalPvp">Subtotal PVP:</label>
+            <input type="number" id="subtotalPvp" class="form-control" name="subtotalPvp" readonly>
+          </div>
+    
+          <div class="form-group">
+            <label for="total">Total:</label>
+            <input type="number" id="total" class="form-control" name="total" readonly>
+          </div>
+    
+          <button type="submit" class="btn btn-primary">Enviar</button>
+        </form>
+      </div>
+    
       <script>
         function searchProvider() {
           var dni = document.getElementById('dni').value;

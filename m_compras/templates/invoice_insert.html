@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+  <title>Tienda de Productos - Información del Proveedor</title>
+  <link rel="stylesheet" href="{% static 'css/detalle2.css' %}" />
+<body>
+
+  <div class="container">
+    <div id="espacio"></div>
+    <!-- Sección de Búsqueda -->
+    <div class="search-section">
+      <h3>Buscar Proveedor</h3>
+      <form method="get" action="{% url 'invoice_insert' %}" id="searchForm">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="dni">DNI:</label>
+          <input type="text" id="dni" name="dni" placeholder="Ingrese el DNI del proveedor" />
+        </div>
+        <button type="submit">Buscar</button>
+
+        <!-- Agregar esta sección para mostrar errores si existen -->
+        <div id="errorSection"></div>
+      </form>
+    </div>
+
+    <!-- Sección de Datos del Proveedor (Modo Lectura) -->
+    <div class="provider-info-section" id="providerInfoSection">
+      <h3>Datos del Proveedor</h3>
+      <div id="provider-data-fields">
+        <div class="form-group">
+          <label for="prov_name">Nombre:</label>
+          <input type="text" id="prov_name" name="prov_name" value="{{ provider.prov_name }}" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="prov_dni">DNI:</label>
+          <input type="text" id="prov_dni" name="prov_dni" value="{{ provider.prov_dni }}" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="prov_phone">Teléfono:</label>
+          <input type="text" id="prov_phone" name="prov_phone" value="{{ provider.prov_phone }}" readonly />
+        </div>
+
+        <!-- Agregar el campo para mostrar el nombre del tipo de pago -->
+        <div class="form-group">
+          <label for="prov_pay_type">Tipo de Pago:</label>
+          <input type="text" id="prov_pay_type" name="prov_pay_type" value="{{ provider.get_prov_type_display }}"
+            readonly />
+        </div>
+
+        <!-- Agregar el campo oculto para guardar el ID del tipo de pago -->
+        <input type="hidden" id="prov_pay_type_id" name="prov_pay_type_id" value="{{ provider.prov_type }}" />
+
+        <!-- Agregar el campo oculto para guardar el ID del proveedor -->
+        <input type="hidden" id="prov_id" name="prov_id" value="{{ provider.prov_id }}" />
+
+        <div class="form-group">
+          <label for="prov_address">Dirección:</label>
+          <input type="text" id="prov_address" name="prov_address" value="{{ provider.prov_address }}" readonly />
+        </div>
+        <input type="hidden" id="invo_prov_id" name="invo_prov_id" value="" />
+      </div>
+    </div>
+
+    <!-- Sección de Datos de la Factura (Modo Edición) -->
+    <div class="invoice-info-section" id="invoiceInfoSection">
+      <h3>Datos de la Factura</h3>
+
+      <div id="invoice-data-fields">
+        <!-- Eliminado el campo del ID de la factura -->
+
+        <div class="form-group">
+          <label for="invo_date">Fecha de Factura:</label>
+          <input type="date" id="invo_date" name="invo_date" value="{{ invoice.invo_date }}" />
+        </div>
+
+        <div class="form-group">
+          <label for="user_id">ID de Usuario:</label>
+          <input type="text" id="user_id" name="user_id" value="{{ invoice.user_id }}" />
+        </div>
+
+        <div class="form-group">
+          <label for="expedition_date">Fecha de Expedición:</label>
+          <input type="date" id="expedition_date" name="expedition_date" value="{{ invoice.expedition_date }}" />
+        </div>
+
+        <!-- Ocultar el ID del proveedor -->
+        <input type="hidden" id="invo_prov_id" name="invo_prov_id" value="" />
+
+        <select id="invo_pay_type" name="invo_pay_type">
+          {% if provider.prov_type == 'Crédito' %}
+          <option value="1" selected>Crédito</option>
+          <option value="2">Contado</option>
+          {% else %}
+          <option value="2" selected>Contado</option>
+          {% endif %}
+        </select>
+
+        <div class="form-group">
+          <label for="invo_number">Número de Factura:</label>
+          <input type="text" id="invo_number" name="invo_number" value="{{ invoice.invo_number }}" />
+        </div>
+
+        <!-- Botón "Registrar" -->
+        <button id="registrarBtn" onclick="registrarFactura()">Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js" async></script>
+  <script>
+    function buscarProveedor() {
+      // Obtener el valor seleccionado del proveedor
+      var selectedProviderId = document.getElementById('seleccionarProveedor').value
+
+      // Obtener el valor del tipo de pago asociado al proveedor
+      var selectedProviderPayTypeId = document.getElementById('seleccionarProveedor').getAttribute('data-pay-type-id')
+
+      // Limpiar mensaje de error y dejar visible la sección de detalles del proveedor
+      var errorSection = document.getElementById('errorSection')
+      var providerInfoSection = document.getElementById('providerInfoSection')
+      errorSection.innerHTML = ''
+      providerInfoSection.style.display = 'block'
+
+      // Actualizar el campo oculto del ID del proveedor en la sección de facturas
+      document.getElementById('invo_prov_id').value = selectedProviderId
+
+      // Actualizar el campo de tipo de pago en la sección de facturas
+      document.getElementById('invo_pay_type').value = selectedProviderPayTypeId
+
+      // Actualizar la lista de opciones de tipo de pago en la sección de facturas
+      actualizarOpcionesTipoPago(selectedProviderPayTypeId)
+    }
+
+    // Función para actualizar la lista de opciones de tipo de pago
+    function actualizarOpcionesTipoPago(selectedProviderPayTypeId) {
+      var tipoPagoSelect = document.getElementById('invo_pay_type')
+
+      // Limpiar las opciones actuales
+      tipoPagoSelect.innerHTML = ''
+
+      // Agregar nuevas opciones según el tipo de pago del proveedor
+      if (selectedProviderPayTypeId === '1') {
+        tipoPagoSelect.innerHTML += '<option value="1" selected>Crédito</option>'
+        tipoPagoSelect.innerHTML += '<option value="2">Contado</option>'
+      } else if (selectedProviderPayTypeId === '2') {
+        tipoPagoSelect.innerHTML += '<option value="2" selected>Contado</option>'
+      }
+    }
+
+    function registrarFactura() {
+      // Desactivar el botón para evitar clics adicionales
+      $('#registrarBtn').prop('disabled', true)
+
+      // Obtener el token CSRF
+      var csrfToken = $('[name=csrfmiddlewaretoken]').val()
+
+      // Obtener los datos del formulario
+      var formData = {
+        csrfmiddlewaretoken: csrfToken,
+        invo_date: $('#invo_date').val(),
+        user_id: $('#user_id').val(),
+        expedition_date: $('#expedition_date').val(),
+        invo_prov_id: $('#prov_id').val(),
+        invo_pay_type: $('#invo_pay_type').val(),
+        invo_number: $('#invo_number').val()
+      }
+
+      // Imprimir formData en la consola para verificar los datos antes de enviarlos
+      console.log('formData:', formData)
+
+      // Realizar una única petición AJAX a tu vista de Django
+      $.ajax({
+        type: 'POST',
+        url: '{% url "invoice_insert" %}',
+        data: formData,
+        dataType: 'json',
+        success: function (response) {
+          // Habilitar el botón nuevamente después de completar la solicitud
+          $('#registrarBtn').prop('disabled', false)
+
+          if (response.success) {
+            // Obtener el ID de la factura de la respuesta
+            var invo_id = response.invo_id
+
+            console.log('Varible invo_id desde la view =', response.invo_id)
+            console.log('Varible invo_id =', invo_id)
+
+            // Verificar si el ID de la factura está definido y no es nulo
+            if (invo_id !== undefined && invo_id !== null && invo_id !== '') {
+              // Redirigir a la página de detalles de la factura con el ID obtenido
+              window.location.href = '/m_compras/invoice_detail_insert/' + invo_id + '/';
+            } else {
+              // Manejar el caso en el que el ID de la factura no está definido en la respuesta
+              console.error('Error al obtener el ID de la factura de la respuesta.')
+              alert('Error al obtener el ID de la factura de la respuesta.')
+            }
+          } else {
+            // Mostrar mensajes de error en caso de problemas
+            console.error('Error al registrar la factura. Detalles:', response.error || response.errors)
+            alert('Error al registrar la factura. Detalles: ' + response.error || response.errors)
+          }
+        }
+      })
+    }
+  </script>
+</body>
+{% endblock %}

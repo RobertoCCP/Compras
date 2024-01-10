@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-<link rel="stylesheet" href="{% static 'css/editp.css' %}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10">
+<link rel="stylesheet" href="{% static 'css/insertarproveedor.css' %}">
 
     <h2>Insertar Proveedor</h2>
     <form class="form-container" method="post" action="{% url 'insertar_proveedor' %}">
@@ -49,44 +47,28 @@
         
         <button type="submit">Guardar cambios</button>
     </form>
-
+ 
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
-        $(document).ready(function () {
-            $('.form-container').submit(function (e) {
-                e.preventDefault();
-                var form = $(this);
-                $.ajax({
-                    type: form.attr('method'),
-                    url: form.attr('action'),
-                    data: form.serialize(),
-                    dataType: 'json',
-                    success: function (data) {
-                        if (data.success) {
-                            Swal.fire({
-                                title: 'Éxito',
-                                text: 'Cambios guardados exitosamente',
-                                icon: 'success'
-                            }).then(function () {
-                                window.location.href = '{% url "consultar_proveedores" %}';
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error',
-                                text: data.error,
-                                icon: 'error'
-                            });
-                        }
-                    },
-                    error: function () {
-                        console.error('Error al realizar la solicitud AJAX');
-                    }
-                });
-            });
+$(document).ready(function () {
+    $('.form-container').submit(function (e) {
+        e.preventDefault();
+        var form = $(this);
+        $.ajax({
+            type: form.attr('method'),
+            url: form.attr('action'),
+            data: form.serialize(),
+            dataType: 'json',
+            success: function (data) {
+                if (data.success) {
+                    alert('Cambios guardados exitosamente');
+                    window.location.href = '{% url "consultar_proveedores" %}';
+                } else {
+                    alert(data.error);  // Muestra solo el mensaje de error
+                }
+            },
         });
+    });
+});
     </script>
-    
-    </script>
-
 {% endblock %}

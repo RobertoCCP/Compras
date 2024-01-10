@@ -1,0 +1,220 @@
+/* Estilos de Bootstrap para las tablas y los botones */
+*{
+    font-family: "Roboto", sans-serif;
+    }
+    
+    h1 {
+        font-size: 20px;
+        margin-top: 20px;
+        margin-left: 20px;
+    }
+    
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        min-width: 400px;
+        border-radius: 5px 5px 0 0;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+        text-align: left;
+        border-top: 1px solid #000000;
+        /* Color azul claro para las líneas */
+        background-color: #fff;
+        padding: 10px 15px;
+        /*font-weight: bold;*/
+    }
+    
+    .table thead th {
+        vertical-align: middle;
+        border-bottom: 2px solid #000000;
+        background-color: #ffa229;
+        color: #ffffff;
+        text-align: left;
+        font-weight: bold;
+    }
+    
+    .table tbody+tbody {
+        border-top: 2px solid #dee2e6;
+    }
+    
+    .btn {
+        display: inline-block;
+        font-weight: 400;
+        color: #212529;
+        text-align: center;
+        vertical-align: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+        line-height: 1.25;
+        border-radius: 0.2rem;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+        transition: background-color 0.3s, color 0.3s, border-color 0.3s; /* Transición suave */
+    }
+    
+    .btn-primary {
+        color: #fff;
+        color: #000000;
+        background-color: #ffffff;
+        border-color: #000000;
+    }
+    
+    .btn-danger {
+        color: #fff;
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .btn-success {
+        color: #000000;
+        background-color: #ffffff;
+        border-color: #000000;
+        margin-bottom: 10px;
+    }
+    
+    .btn-action {
+        color: #000000;
+        background-color: #ffffff;
+        border-color: #000000;
+    }
+    
+    .btn-success:hover, .btn-primary:hover, .btn-action:hover {
+        color: #ffffff; /* Cambia el color del texto a naranja */
+        background-color: #ff6e2f; /* Cambia el fondo a blanco */
+        border-color: #000000; /* Cambia el color del borde a negro */
+    }
+    
+    
+    /* Nueva regla para el contenedor de los botones */
+    .btn-container {
+        display: flex;
+        justify-content: flex-start; /* Alinear los botones al centro horizontalmente */
+    }
+
+    #fecha {
+        max-width: 100%;
+        margin: 0 auto;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        background-color: #f9f9f9;
+    }
+    
+    /* Estilos para los grupos de formulario */
+    .form-group {
+        display: flex; /* Usa Flexbox */
+        align-items: center; /* Alinea verticalmente */
+        margin: 0 5px; /* Margen para separar los grupos */
+    }
+    
+    /* Estilos para las etiquetas */
+    #fecha label {
+        margin-right: 5px; /* Espacio entre la etiqueta y el campo */
+    }
+    
+    /* Estilos para los campos de entrada y selección */
+    #fecha input[type="date"],
+    #fecha select {
+        flex-grow: 1; /* Permite que los elementos crezcan y ocupen el espacio disponible */
+        margin-right: 5px; /* Espacio a la derecha del campo */
+    }
+
+    /* Estilos para el botón */
+.btn-primary {
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    min-width: 100px; /* Ancho mínimo para el botón */
+    border-color: #000000;
+}
+
+.btn-primary:hover {
+    color: #ffffff; /* Cambia el color del texto a naranja */
+    background-color: #ff6e2f; /* Cambia el fondo a blanco */
+    border-color: #000000; /* Cambia el color del borde a negro */
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    #fecha {
+        flex-direction: column; /* Cambia a disposición vertical en pantallas pequeñas */
+    }
+
+    #fecha label,
+    #fecha input[type="date"],
+    #fecha select,
+    .btn-primary {
+        margin: 5px 0; /* Margen superior e inferior en pantallas pequeñas */
+        flex-grow: 0; /* Desactiva el crecimiento automático */
+        width: 100%; /* Ancho completo en pantallas pequeñas */
+    }
+}
+
+#search-form {
+    margin-top: -43.5px;
+    margin-right: 10px;
+}
+
+.material-icons-outlined {
+    background-color: white; /* Color de fondo inicial blanco */
+    color: black; /* Color del icono inicial negro */
+    border: 2px solid black; /* Bordes negros */
+    transition: background-color 0.3s; /* Transición suave del color de fondo */
+}
+
+.material-icons-outlined:hover {
+    background-color: #ff6e2f; /* Color de fondo al pasar el ratón: naranja */
+    color: white; /* Cambia el color del icono a blanco cuando se pasa el ratón */
+}
+
+/* Paginación */
+.pagination {
+    text-align: left;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.step-links {
+    display: flex;
+    gap: 10px;
+}
+
+.step-links a {
+    background-color: #ffffff;
+    /* Color gris para los botones */
+    color: #000;
+    /* Color negro para el texto de los botones */
+    padding: 5px 10px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.step-links a:hover {
+    background-color: #ff6e2f;
+    /* Color gris más claro al pasar el mouse */
+}
+
+.step-links .current {
+    background-color: #d1d0d000;
+    color: #000000;
+    font-weight: bold;
+    padding: 5px;
+}

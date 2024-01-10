@@ -1,53 +1,57 @@
 /* Estilo para el contenedor del formulario */
 form {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 1rem;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  /* Estilo para las etiquetas */
-  label {
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-  }
-  
-  /* Estilo para los campos de entrada y selección */
-  input,
-  select {
-    /* width: 100%;  */
-    padding: 0.5rem 1rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid #ccc;
-    background-color: #fff;
-  }
-  
-  /* Estilo para el checkbox y su etiqueta */
-  .form-check {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .form-check-input {
-    margin-right: 1rem;
-  }
-  
-  /* Estilo para el botón */
-  button {
-    background-color: #4caf50;
-    color: white;
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  /* Cambio de estilo al pasar el ratón sobre el botón */
-  button:hover {
-    background-color: #45a049;
-  }
-  
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilo para las etiquetas */
+label {
+  margin-bottom: 0.1rem;
+  font-weight: 600;
+}
+
+/* Estilo para los campos de entrada y selección */
+input,
+select {
+  /* width: 100%;  */
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* Estilo para el checkbox y su etiqueta */
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-check-input {
+  margin-right: 1rem;
+}
+
+/* Estilo para el botón */
+button {
+  background-color: #ffffff;
+  color: white;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: white; /* Color de fondo inicial blanco */
+  color: black; /* Color del icono inicial negro */
+  border: 2px solid black; /* Bordes negros */
+  transition: background-color 0.3s; /* Transición suave del color de fondo */
+}
+
+/* Cambio de estilo al pasar el ratón sobre el botón */
+button:hover {
+  background-color: #ff6e2f;
+  color: white;
+}

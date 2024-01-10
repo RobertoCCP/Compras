@@ -38,6 +38,7 @@ class Providers(models.Model):
         super().save(*args, **kwargs)
         self.audit_log(action_type, user_id)
 
+
     def delete(self, *args, user_id=None, **kwargs):
         super().delete(*args, **kwargs)
         self.audit_log('DELETE', user_id)
@@ -78,12 +79,13 @@ class Providers(models.Model):
 
 
 class Invoice(models.Model):
-    invo_id = models.CharField(max_length=16, default="new_invoice_invo_id_seq", primary_key=True)
+    invo_id = models.BigAutoField(primary_key=True)
     invo_date = models.DateField()
     user_id = models.CharField(max_length=10)
-    expedition_date = models.DateField()
+    expedition_date = models.DateField(null=True, blank=True)  # Permite valores nulos para expedition_date
     invo_prov_id = models.ForeignKey(Providers, on_delete=models.CASCADE, db_column='invo_prov_id')
     invo_pay_type = models.ForeignKey(PayType, on_delete=models.CASCADE, db_column='invo_pay_type')
+    invo_number = models.CharField(max_length=25)
     
     class Meta:
         managed = False
@@ -97,7 +99,7 @@ class Invoice(models.Model):
 
 
 class InvoiceDetail(models.Model):
-    ivo_det_id = models.IntegerField(primary_key=True)
+    ivo_det_id = models.BigAutoField(primary_key=True)
     prod_id = models.IntegerField()
     quantity_invo_det = models.IntegerField()
     invo_det_invo_id = models.ForeignKey(Invoice, on_delete=models.CASCADE, db_column='invo_det_invo_id')
