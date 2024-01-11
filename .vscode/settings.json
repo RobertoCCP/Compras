@@ -1,0 +1,9 @@
+{
+    "python.analysis.autoImportCompletions": true,
+    "planner.azure-devops.token": "2zse3i75tokxrj47ogzvbcprnu3imkbj3xivj7hrgbfqpmfvcl6a",
+    "planner.azure-devops.team": "Compras Team",
+    "planner.azure-devops.proxy": "https://rccuascotap@dev.azure.com/rccuascotap/Compras/_git/Compras",
+    "planner.azure-devops.project": "Compras",
+    "planner.azure-devops.process": "Scrum",
+    "planner.azure-devops.organization": "rccuascotap"
+}

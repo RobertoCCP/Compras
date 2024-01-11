@@ -2,13 +2,14 @@
 {% block content %}
 {% load static %}
   <title>Tienda de Productos - Información del Proveedor</title>
-  <link rel="stylesheet" href="{% static 'css/detalle2.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/det2.css' %}" />
 <body>
 
   <div class="container">
     <div id="espacio"></div>
     <!-- Sección de Búsqueda -->
-    <div class="search-section">
+    <div class="form-container">
+    <div class="search-section form-column">
       <h3>Buscar Proveedor</h3>
       <form method="get" action="{% url 'invoice_insert' %}" id="searchForm">
         {% csrf_token %}
@@ -22,9 +23,10 @@
         <div id="errorSection"></div>
       </form>
     </div>
+  </div>
 
     <!-- Sección de Datos del Proveedor (Modo Lectura) -->
-    <div class="provider-info-section" id="providerInfoSection">
+    <div class="provider-info-section form-column" id="providerInfoSection">
       <h3>Datos del Proveedor</h3>
       <div id="provider-data-fields">
         <div class="form-group">
@@ -64,7 +66,7 @@
     </div>
 
     <!-- Sección de Datos de la Factura (Modo Edición) -->
-    <div class="invoice-info-section" id="invoiceInfoSection">
+    <div class="invoice-info-section form-column" id="invoiceInfoSection">
       <h3>Datos de la Factura</h3>
 
       <div id="invoice-data-fields">

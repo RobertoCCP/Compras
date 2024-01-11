@@ -402,6 +402,11 @@ def consultar_facturas(request):
         connection.close()
         connection.connect()
 
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.shortcuts import render, get_object_or_404
+from .models import Invoice, InvoiceDetail
+import requests
+
 def listarDetalleFactura(request, factura_id):
     # Obtener la instancia de Invoice
     factura = get_object_or_404(Invoice, invo_id=factura_id)
@@ -436,27 +441,37 @@ def listarDetalleFactura(request, factura_id):
         detalleFactura = [
             {
                 "ivo_det_id": detalle.ivo_det_id,
-                "prod_id": detalle.prod_id,  # Suponiendo que prod_id es la clave foránea a Product
+                "prod_id": detalle.prod_id,
                 "quantity_invo_det": detalle.quantity_invo_det,
                 "invo_det_invo_id": detalle.invo_det_invo_id.invo_id,
                 "producto_nombre": get_producto_nombre(productos_api, detalle.prod_id),
-                "precio_unidad": get_producto_precio(
-                    productos_api, detalle.prod_id
-                ),  # Modificar según la lógica de tu aplicación
+                "precio_unidad": get_producto_precio(productos_api, detalle.prod_id),
                 "precio_total": detalle.quantity_invo_det
-                * get_producto_precio(productos_api, detalle.prod_id),  # Corregir aquí
+                * get_producto_precio(productos_api, detalle.prod_id),
             }
             for detalle in detalles
         ]
 
-        # Agregar la información de la factura y los productos al contexto
+        paginator = Paginator(detalleFactura, 1)  # Muestra 1 detalle por página
+
+        # Obtener el número de página de la solicitud GET
+        page = request.GET.get("page")
+
+        try:
+            detalle_paginados = paginator.page(page)
+        except PageNotAnInteger:
+            detalle_paginados = paginator.page(1)
+        except EmptyPage:
+            detalle_paginados = paginator.page(paginator.num_pages)
+
         return render(
             request,
             "listarDetalleFactura.html",
             {
-                "detalles": detalleFactura,
                 "info_factura": info_factura,
                 "productos_api": productos_api,
+                "detalles": detalleFactura,
+                "detalles_paginados": detalle_paginados,
             },
         )
 
@@ -465,7 +480,7 @@ def listarDetalleFactura(request, factura_id):
         return render(
             request,
             "listarDetalleFactura.html",
-            {"detalles": [], "info_factura": {}, "productos_api": []},
+            {"detalles": [], "info_factura": {}, "productos_api": [], "detalles_paginados": []},
         )
 
 
