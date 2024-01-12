@@ -2,7 +2,7 @@
 {% block content %}
 {% load static %}
       <title>Tienda de Productos</title>
-      <link rel="stylesheet" href="{% static 'css/detail.css' %}" />
+      <link rel="stylesheet" href="{% static 'css/deta.css' %}" />
       <!-- ... (otras etiquetas meta, title, etc.) ... -->
     <body>
       <div class="left-side">
@@ -42,6 +42,7 @@
           <table border="1">
             <thead>
               <tr>
+                <th>Accion</th>
                 <th>Producto</th>
                 <th>Precio</th>
                 <th>Cantidad</th>
@@ -55,8 +56,7 @@
             <div>{{ error }}</div>
           {% endif %}
           <!-- Botón para registrar productos -->
-          <button type="button" onclick="registerProducts()">Registrar Productos</button>
-          <button type="submit">Enviar Formulario</button>
+          <button id="subir" type="button" onclick="registerProducts()">Registrar Productos</button>
         </form>
       </div>
 
@@ -101,6 +101,7 @@ function updateInvoiceDetailTable() {
     // Agregar cada producto al DOM de la tabla
     products_data.forEach(product => {
         var newRow = `<tr>
+            <td><button id="quitar" type="button" onclick="removeProduct('${product.prod_id}')">Eliminar</button></td>
             <td>${product.prod_name}</td>
             <td>${product.prod_price}</td>
             <td>${product.prod_quantity}</td>
@@ -109,45 +110,57 @@ function updateInvoiceDetailTable() {
         tableBody.append(newRow);
     });
 }
-        
+          // Nueva función para eliminar un producto de la tabla
+        function removeProduct(productId) {
+          // Filtrar el array de productos para excluir el producto con el ID proporcionado
+          products_data = products_data.filter(product => product.prod_id !== productId);
+          // Actualizar la tabla después de eliminar el producto
+          updateInvoiceDetailTable();
+        }
         function registerProducts() {
-          // Obtener el token CSRF del documento
-          var csrfToken = $('input[name=csrfmiddlewaretoken]').val()
-        
-          // Obtener el invo_det_invo_id de la URL actual
-          var invo_det_invo_id = window.location.pathname.split('/').slice(-2, -1)[0]
-        
-          console.log('products_data =', products_data)
-        
-          let products_json = JSON.stringify(products_data)
-        
-          console.log('products_json =', products_json)
-        
-          // Enviar los datos al servidor mediante una petición AJAX
-          $.ajax({
-            type: 'POST',
-            url: '/m_compras/invoice_detail_insert/' + invo_det_invo_id + '/',
-            data: JSON.stringify({ "products": products_data }), // Enviar un objeto JSON directamente
-            contentType: 'application/json; charset=utf-8', // Establecer el tipo de contenido
-            headers: {
-              'X-CSRFToken': csrfToken // Incluir el token CSRF en las cabeceras
-            },
-            success: function (response) {
-              // Manejar la respuesta del servidor si es necesario
-              alert('Productos registrados con éxito')
-        
-              // Redirigir o realizar otras acciones después del registro exitoso si es necesario
-              // window.location.href = '/ruta_nueva/';
-            },
-            dataType: 'json',
-            error: function (error) {
-              console.error('Error al registrar productos:', error)
-              alert('Error al registrar productos. Detalles en la consola.')
+            // Verificar si hay productos para registrar
+            if (products_data.length === 0) {
+                alert('No hay productos para registrar.');
+                return;
             }
-          })
-        
-          // Limpiar el array después de enviar los datos
-          products_data = []
+
+            // Obtener el token CSRF del documento
+            var csrfToken = $('input[name=csrfmiddlewaretoken]').val()
+
+            // Obtener el invo_det_invo_id de la URL actual
+            var invo_det_invo_id = window.location.pathname.split('/').slice(-2, -1)[0]
+
+            console.log('products_data =', products_data)
+
+            let products_json = JSON.stringify(products_data)
+
+            console.log('products_json =', products_json)
+
+            // Enviar los datos al servidor mediante una petición AJAX
+            $.ajax({
+                type: 'POST',
+                url: '/m_compras/invoice_detail_insert/' + invo_det_invo_id + '/',
+                data: JSON.stringify({ "products": products_data }),
+                contentType: 'application/json; charset=utf-8',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                },
+                success: function (response) {
+                    // Manejar la respuesta del servidor si es necesario
+                    alert('Productos registrados con éxito');
+
+                    // Redirigir a la página de consultar_facturas
+                    window.location.href = '/m_compras/consultar_facturas/';
+                },
+                dataType: 'json',
+                error: function (error) {
+                    console.error('Error al registrar productos:', error)
+                    alert('Error al registrar productos. Detalles en la consola.')
+                }
+            });
+
+            // Limpiar el array después de enviar los datos
+            products_data = [];
         }
       </script>
     </body>

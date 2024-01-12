@@ -1,0 +1,160 @@
+/* Estilos para la disposición de los lados */
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.left-side, .right-side {
+    width: 100%;
+    padding: 10px;
+}
+
+/* Estilo para la lista de productos */
+.product-list {
+    max-height: 28vh;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.product-card {
+    display: flex;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.product-image {
+    flex-basis: 30%;
+}
+
+.product-image img {
+    width: 100%;
+    height: auto;
+}
+
+.product-details {
+    flex-basis: 70%;
+    padding-left: 15px;
+}
+
+.product-details h4 {
+    margin-top: 0;
+    font-weight: bold;
+    color: #000;
+}
+
+.product-details p {
+    margin-bottom: 5px;
+}
+
+.quantity-input {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.quantity-input label {
+    margin-right: 10px;
+}
+
+.add-to-cart {
+    background-color: #ff6e2f; /* Cambié el color a naranja */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Estilo para la tabla en la derecha */
+table {
+    width: 100%;
+    margin-top: 10px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+thead {
+    background-color: #ff6e2f; /* Cambié el color a naranja */
+    color: white;
+}
+
+/* Estilos adicionales para el formulario en el lado derecho */
+.right-side {
+    background-color: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Centrar los elementos horizontalmente */
+}
+
+.right-side > form {
+    width: 100%;/* Ajusta el ancho máximo del formulario según sea necesario */
+}
+
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 5px;
+    margin-top: 5px;
+}
+
+/* Estilos para el botón con id "subir" */
+
+#subir {
+    display: inline-block;
+    font-weight: 400;
+    color: #212529;
+    text-align: center;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.25;
+    border-radius: 0.2rem;
+    background-color: #ffffff; /* Color naranja */
+    border-color: #ff6e2f; /* Color naranja */
+    color: rgb(0, 0, 0);
+    transition: background-color 0.3s, border-color 0.3s; /* Agregado para la transición suave */
+}
+
+#subir:hover {
+    background-color: #d9534f; /* Cambia el color a un tono más oscuro de naranja al pasar el ratón */
+    border-color: #d9534f; /* Cambia el color a un tono más oscuro de naranja al pasar el ratón */
+}
+
+
+#quitar {
+    display: inline-block;
+    font-weight: 400;
+    color: #212529;
+    text-align: center;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    line-height: 1.25;
+    border-radius: 0.2rem;
+    background-color: #ffffff; /* Color naranja */
+    border-color: #ff6e2f; /* Color naranja */
+    color: rgb(0, 0, 0);
+    transition: background-color 0.3s, border-color 0.3s; /* Agregado para la transición suave */
+}
+
+#quitar:hover {
+    background-color: #d9534f; /* Cambia el color a un tono más oscuro de naranja al pasar el ratón */
+    border-color: #d9534f; /* Cambia el color a un tono más oscuro de naranja al pasar el ratón */
+}
