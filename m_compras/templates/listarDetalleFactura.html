@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="{% static 'css/detf.css' %}" />
   <!-- Mostrar información del cliente, fecha y tipo de pago -->
 
-  <form id="pdf-form" style="display: flex; align-items: center;" action="{% url 'generar_pdf' invoice_id=info_factura.invo_id %}">
-    <button type="button" id="btn-generar-pdf" class="btn btn-primary">Imprimir </button>
+  <form id="pdf-form" style="display: flex; align-items: center;" action="{% url 'generar_pdf' info_factura.invo_id %}">
+    <button type="button" id="btn-generar-pdf" class="btn btn-primary" onclick="imprimirPDF()">Imprimir</button>
   </form>
   <p>
     Cliente: {{ info_factura.cliente_nombre }} | Fecha: {{ info_factura.fecha }} | Tipo de Pago: {{ info_factura.tipo_pago }}
@@ -64,6 +64,11 @@
       calcularTotales()
     })
     
+    function imprimirPDF() {
+      var form = document.getElementById('pdf-form')
+      form.submit()
+    }
+    
     function calcularTotales() {
       var subtotalSinImpuestos = 0
       var iva12 = 0
@@ -71,7 +76,7 @@
       var precioTotalCells = document.querySelectorAll('.precio-total')
       var ivaCells = document.querySelectorAll('.iva')
     
-      precioTotalCells.forEach(function (cell,index) {
+      precioTotalCells.forEach(function (cell, index) {
         var precioTotal = parseFloat(cell.textContent)
         var grabaIVA = ivaCells[index].textContent.toLowerCase() === 'true' // Convertir a minúsculas y evaluar como booleano
         if (!isNaN(precioTotal)) {
@@ -90,6 +95,4 @@
       document.getElementById('valor-total').textContent = valorTotal.toFixed(2)
     }
   </script>
-
-
 {% endblock %}

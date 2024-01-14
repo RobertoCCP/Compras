@@ -41,19 +41,19 @@ def consultar_proveedores(request):
 
     # Mapeo de los campos para el ordenamiento
     campos_ordenamiento = {
-        'nombre': 'prov_name',
-        'dni': 'prov_dni',
-        'telefono': 'prov_phone',
-        'email': 'prov_email',
-        'ciudad': 'prov_city',
-        'estado': 'prov_status',
-        'tipo': 'prov_type',
-        'direccion': 'prov_address'
+        "nombre": "prov_name",
+        "dni": "prov_dni",
+        "telefono": "prov_phone",
+        "email": "prov_email",
+        "ciudad": "prov_city",
+        "estado": "prov_status",
+        "tipo": "prov_type",
+        "direccion": "prov_address",
     }
 
-    campo_orden_base = orden.replace('-', '')
-    campo_orden = campos_ordenamiento.get(campo_orden_base, 'prov_name')
-    direccion_orden = "DESC" if orden.startswith('-') else "ASC"
+    campo_orden_base = orden.replace("-", "")
+    campo_orden = campos_ordenamiento.get(campo_orden_base, "prov_name")
+    direccion_orden = "DESC" if orden.startswith("-") else "ASC"
 
     base_query = "SELECT * FROM public.providers_select_all()"
     if search_query:
@@ -82,6 +82,7 @@ def consultar_proveedores(request):
         {"proveedores": proveedores_paginados, "search_query": search_query},
     )
 
+
 from django.http import HttpResponse, JsonResponse
 
 
@@ -94,9 +95,16 @@ def editar_proveedor(request, prov_id):
             with transaction.atomic():
                 if form.is_valid():
                     form.save()
-                    return JsonResponse({"success": True, "message": "Proveedor actualizado exitosamente"})
+                    return JsonResponse(
+                        {
+                            "success": True,
+                            "message": "Proveedor actualizado exitosamente",
+                        }
+                    )
                 else:
-                    error_message = "Error al validar el formulario. Corrige los errores."
+                    error_message = (
+                        "Error al validar el formulario. Corrige los errores."
+                    )
                     return JsonResponse({"success": False, "error": error_message})
         except Exception as e:
             # Captura la excepción y devuelve solo el mensaje personalizado
@@ -110,8 +118,10 @@ def editar_proveedor(request, prov_id):
         request, "editar_proveedor.html", {"form": form, "provider": provider}
     )
 
+
 from django.db import IntegrityError
 from django.db import transaction
+
 
 def insertar_proveedor(request):
     if request.method == "POST":
@@ -124,7 +134,9 @@ def insertar_proveedor(request):
                         {"success": True, "message": "Proveedor guardado exitosamente"}
                     )
                 else:
-                    error_message = "Error al validar el formulario. Corrige los errores."
+                    error_message = (
+                        "Error al validar el formulario. Corrige los errores."
+                    )
                     return JsonResponse({"success": False, "error": error_message})
         except Exception as e:
             # Captura la excepción y devuelve solo el mensaje personalizado
@@ -314,100 +326,103 @@ from django.http import HttpResponse
 from django.db import OperationalError, connections
 from psycopg2 import OperationalError as Psycopg2OpError
 
+
 def consultar_facturas(request):
     try:
         # Tu código que interactúa con la base de datos aquí
-            search_query = request.GET.get("search", "")
-            orden = request.GET.get("ordenar", "invo_date")  # Orden por defecto
+        search_query = request.GET.get("search", "")
+        orden = request.GET.get("ordenar", "invo_date")  # Orden por defecto
 
-            # Mapeo de los campos para el ordenamiento
-            campos_ordenamiento = {
-                'fecha': 'invo_date',
-                'proveedor': 'invo_prov_id__prov_name',
-                'expiracion': 'expedition_date',
-                'tipo': 'invo_pay_type',
-            }
+        # Mapeo de los campos para el ordenamiento
+        campos_ordenamiento = {
+            "fecha": "invo_date",
+            "proveedor": "invo_prov_id__prov_name",
+            "expiracion": "expedition_date",
+            "tipo": "invo_pay_type",
+        }
 
-            campo_orden_base = orden.replace('-', '')
-            campo_orden = campos_ordenamiento.get(campo_orden_base, 'invo_date')
-            direccion_orden = "-" if orden.startswith('-') else ""
+        campo_orden_base = orden.replace("-", "")
+        campo_orden = campos_ordenamiento.get(campo_orden_base, "invo_date")
+        direccion_orden = "-" if orden.startswith("-") else ""
 
-            # Obtener fechas del formulario
-            fecha_inicio = request.GET.get("fecha_inicio")
-            fecha_fin = request.GET.get("fecha_fin")
+        # Obtener fechas del formulario
+        fecha_inicio = request.GET.get("fecha_inicio")
+        fecha_fin = request.GET.get("fecha_fin")
 
-            # Obtener tipo de pago del formulario
-            tipo_pago = request.GET.get("type_pay")
+        # Obtener tipo de pago del formulario
+        tipo_pago = request.GET.get("type_pay")
 
-            # Construir la consulta
-            facturas_list = Invoice.objects.all()
+        # Construir la consulta
+        facturas_list = Invoice.objects.all()
 
-            if fecha_inicio and fecha_fin:
-                fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
-                fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-                facturas_list = facturas_list.filter(invo_date__range=(fecha_inicio, fecha_fin))
-
-            if tipo_pago:
-                tipo_pago_valor = 1 if tipo_pago == "credito" else 2
-                facturas_list = facturas_list.filter(invo_pay_type=tipo_pago_valor)
-
-            if search_query:
-                facturas_list = facturas_list.filter(
-                    Q(invo_prov_id__prov_name__icontains=search_query)
-                    # Agrega otros criterios de búsqueda según tus necesidades
-                )
-
-            facturas_list = facturas_list.order_by(direccion_orden + campo_orden)
-
-            # Configurar el paginador
-            paginator = Paginator(facturas_list, 8)
-
-            # Obtener el número de página de la solicitud GET
-            page = request.GET.get("page")
-
-            try:
-                facturas = paginator.page(page)
-            except PageNotAnInteger:
-                facturas = paginator.page(1)
-            except EmptyPage:
-                facturas = paginator.page(paginator.num_pages)
-
-            if not facturas_list.exists():
-                mensaje = "No hay facturas que coincidan con los criterios de búsqueda."
-
-                if fecha_inicio and fecha_fin and tipo_pago:
-                    mensaje = f"No hay facturas con tipo de pago '{tipo_pago}' en el rango de fechas proporcionado."
-                elif fecha_inicio and fecha_fin:
-                    mensaje = "No hay facturas en el rango de fechas proporcionado."
-                elif tipo_pago:
-                    mensaje = f"No hay facturas con tipo de pago '{tipo_pago}'."
-
-                if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
-                    return HttpResponse(json.dumps({'mensaje': mensaje}), content_type='application/json')
-
-                # Muestra el mensaje de alerta
-                return render(
-                    request,
-                    "invoice_read.html",
-                    {"mensaje_alerta": mensaje}
-                )
-
-            return render(
-                request,
-                "invoice_read.html",
-                {"facturas": facturas, "search_query": search_query, "orden_actual": orden},
+        if fecha_inicio and fecha_fin:
+            fecha_inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+            fecha_fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+            facturas_list = facturas_list.filter(
+                invo_date__range=(fecha_inicio, fecha_fin)
             )
+
+        if tipo_pago:
+            tipo_pago_valor = 1 if tipo_pago == "credito" else 2
+            facturas_list = facturas_list.filter(invo_pay_type=tipo_pago_valor)
+
+        if search_query:
+            facturas_list = facturas_list.filter(
+                Q(invo_prov_id__prov_name__icontains=search_query)
+                # Agrega otros criterios de búsqueda según tus necesidades
+            )
+
+        facturas_list = facturas_list.order_by(direccion_orden + campo_orden)
+
+        # Configurar el paginador
+        paginator = Paginator(facturas_list, 8)
+
+        # Obtener el número de página de la solicitud GET
+        page = request.GET.get("page")
+
+        try:
+            facturas = paginator.page(page)
+        except PageNotAnInteger:
+            facturas = paginator.page(1)
+        except EmptyPage:
+            facturas = paginator.page(paginator.num_pages)
+
+        if not facturas_list.exists():
+            mensaje = "No hay facturas que coincidan con los criterios de búsqueda."
+
+            if fecha_inicio and fecha_fin and tipo_pago:
+                mensaje = f"No hay facturas con tipo de pago '{tipo_pago}' en el rango de fechas proporcionado."
+            elif fecha_inicio and fecha_fin:
+                mensaje = "No hay facturas en el rango de fechas proporcionado."
+            elif tipo_pago:
+                mensaje = f"No hay facturas con tipo de pago '{tipo_pago}'."
+
+            if request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest":
+                return HttpResponse(
+                    json.dumps({"mensaje": mensaje}), content_type="application/json"
+                )
+
+            # Muestra el mensaje de alerta
+            return render(request, "invoice_read.html", {"mensaje_alerta": mensaje})
+
+        return render(
+            request,
+            "invoice_read.html",
+            {"facturas": facturas, "search_query": search_query, "orden_actual": orden},
+        )
 
     except (OperationalError, Psycopg2OpError) as e:
         # Manejar la desconexión de la base de datos
-        connection = connections['default']
+        connection = connections["default"]
         connection.close()
         connection.connect()
+
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, get_object_or_404
 from .models import Invoice, InvoiceDetail
 import requests
+
 
 def listarDetalleFactura(request, factura_id):
     # Obtener la instancia de Invoice
@@ -423,11 +438,14 @@ def listarDetalleFactura(request, factura_id):
 
         # Crear un diccionario con la información de la factura
         info_factura = {
+            "invo_id": factura.invo_id,
             "cliente_nombre": primer_detalle.invo_det_invo_id.invo_prov_id.prov_name,
             "fecha": primer_detalle.invo_det_invo_id.invo_date,
             "tipo_pago": primer_detalle.invo_det_invo_id.invo_pay_type.pay_name,
             "fecha_expiracion": primer_detalle.invo_det_invo_id.expedition_date,
         }
+        print(f"Invoice ID: {factura.invo_id}")
+        print(f"Invoice ID2: {primer_detalle.invo_det_invo_id}")
 
         # Hacer una solicitud a la API para obtener los detalles de los productos
         api_url = "https://inventario-phue.onrender.com/inventario/products/"
@@ -483,10 +501,9 @@ def get_producto_nombre(productos_api, prod_id):
 
 def get_producto_precio(productos_api, prod_id):
     producto = next((p for p in productos_api if p["pro_id"] == prod_id), None)
-    precio_str = (
-        producto["pro_cost"] if producto else "0"
-    )
+    precio_str = producto["pro_cost"] if producto else "0"
     return float(precio_str)
+
 
 # Funciones auxiliares para obtener nombre y precio del producto por ID
 def get_producto_iva(productos_api, prod_id):
@@ -688,17 +705,14 @@ class Invoice_Detail_Insert_View(View):
         print("Invoice ID:", invo_det_invo_id)  # Imprimir el valor para verificar
         print("Invoice:", invoice)  # Imprimir el valor para verificar
 
-
-
         try:
             # Intentar cargar los datos JSON
             data = json.loads(request.body)
-            print("data",data)
+            print("data", data)
         except json.JSONDecodeError as e:
             # Imprimir información detallada del error en la consola del servidor Django
             print(f"Error al procesar la solicitud: {e}")
             return JsonResponse({"error": "Error al procesar la solicitud"}, status=500)
-
 
         # Asegúrate de que 'products' esté presente en los datos
         if "products" not in data:
@@ -725,7 +739,7 @@ class Invoice_Detail_Insert_View(View):
 
         # Redirige a la misma vista después de procesar la solicitud POST
         return JsonResponse({"success": True})
-    
+
 
 from django.http import HttpResponse
 from io import BytesIO
@@ -734,7 +748,10 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from datetime import datetime
-from .models import Personal  # Asegúrate de importar el modelo Personal desde tu aplicación
+from .models import (
+    Personal,
+)  # Asegúrate de importar el modelo Personal desde tu aplicación
+
 
 def reporte_proveedores(request):
     # Obtén los datos de la base de datos (supongamos que tienes un modelo llamado Proveedor)
@@ -744,12 +761,19 @@ def reporte_proveedores(request):
     buffer = BytesIO()
 
     # Crea el objeto PDF usando reportlab
-    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=18,
+    )
 
     # Configuración del estilo del documento
     styles = getSampleStyleSheet()
-    style_heading = styles['Heading1']
-    style_body = styles['BodyText']
+    style_heading = styles["Heading1"]
+    style_body = styles["BodyText"]
 
     # Agrega contenido al PDF
     contenido = []
@@ -768,27 +792,67 @@ def reporte_proveedores(request):
     contenido.append(Spacer(1, 12))
 
     # Crea una lista de datos para la tabla
-    data = [["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]]
+    data = [
+        ["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]
+    ]
 
     for proveedor in proveedores:
-        data.append([proveedor.prov_name, proveedor.prov_dni, proveedor.prov_phone,
-                     proveedor.prov_email, proveedor.prov_city, proveedor.prov_status,
-                     proveedor.get_prov_type_display(), proveedor.prov_address])
+        data.append(
+            [
+                proveedor.prov_name,
+                proveedor.prov_dni,
+                proveedor.prov_phone,
+                proveedor.prov_email,
+                proveedor.prov_city,
+                proveedor.prov_status,
+                proveedor.get_prov_type_display(),
+                proveedor.prov_address,
+            ]
+        )
 
-    # Crea la tabla y aplica estilos
+        # Crea la tabla y aplica estilos
         tabla = Table(data)
-        tabla.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.orange),  # Color de fondo para la fila de encabezado
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),  # Reducir el espacio entre el texto y la celda superior
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-            ('FONTSIZE', (0, 0), (-1, -1), 7),  # Establecer el tamaño de la letra en 8 puntos
-            ('LEFTPADDING', (0, 0), (-1, -1), 8),  # Añadir un margen izquierdo de 12 puntos
-            ('RIGHTPADDING', (0, 0), (-1, -1), 8),  # Añadir un margen derecho de 12 puntos
-        ]))
+        tabla.setStyle(
+            TableStyle(
+                [
+                    (
+                        "BACKGROUND",
+                        (0, 0),
+                        (-1, 0),
+                        colors.orange,
+                    ),  # Color de fondo para la fila de encabezado
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, 0),
+                        6,
+                    ),  # Reducir el espacio entre el texto y la celda superior
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                    (
+                        "FONTSIZE",
+                        (0, 0),
+                        (-1, -1),
+                        7,
+                    ),  # Establecer el tamaño de la letra en 8 puntos
+                    (
+                        "LEFTPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        8,
+                    ),  # Añadir un margen izquierdo de 12 puntos
+                    (
+                        "RIGHTPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        8,
+                    ),  # Añadir un margen derecho de 12 puntos
+                ]
+            )
+        )
 
     # Agrega la tabla al contenido
     contenido.append(tabla)
@@ -806,18 +870,28 @@ def reporte_proveedores(request):
     buffer.seek(0)
 
     # Crea una respuesta HTTP con el contenido del PDF
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename=reporte_proveedores.pdf'
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = "attachment; filename=reporte_proveedores.pdf"
     response.write(buffer.getvalue())
 
     return response
+
 
 from django.shortcuts import render
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from .models import Invoice, InvoiceDetail
 
+
 def generar_pdf(request, invoice_id):
+    # Obtén los productos de la API
+    try:
+        response = requests.get("https://inventario-phue.onrender.com/inventario/products/")
+        products = response.json() if response.status_code == 200 else []
+    except Exception as e:
+        print(f"Error al obtener productos desde la API: {e}")
+        products = []
+
     try:
         factura = Invoice.objects.get(invo_id=invoice_id)
         detalles = InvoiceDetail.objects.filter(invo_det_invo_id=factura)
@@ -847,17 +921,24 @@ def generar_pdf(request, invoice_id):
     y_position -= 20
 
     for detalle in detalles:
-        p.drawString(x_position, y_position, f"Producto: {detalle.prod_id.prod_name}")
+        # Utiliza las funciones auxiliares para obtener los datos del producto desde la API
+        prod_name = get_producto_nombre(products, detalle.prod_id)
+        prod_pvp = get_producto_precio(products, detalle.prod_id)
+        prod_iva = get_producto_iva(products, detalle.prod_id)
+        # Calcula el precio total aquí
+        precio_total = detalle.quantity_invo_det * prod_pvp
+
+        p.drawString(x_position, y_position, f"Producto: {prod_name}")
         y_position -= 20
         p.drawString(x_position, y_position, f"Cantidad: {detalle.quantity_invo_det}")
         y_position -= 20
-        p.drawString(x_position, y_position, f"Precio Unidad: {detalle.prod_id.prod_pvp}")
+        p.drawString(x_position, y_position, f"Precio Unidad: {prod_pvp}")
         y_position -= 20
-        p.drawString(x_position, y_position, f"Precio Total: {detalle.precio_total}")
+        p.drawString(x_position, y_position, f"Precio Total: {precio_total}")
         y_position -= 20
-        p.drawString(x_position, y_position, f"IVA: {'Si' if detalle.prod_id.prod_iva else 'No'}")
+        p.drawString(x_position, y_position, f"IVA: {'Si' if prod_iva else 'No'}")
 
-    subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles)
+    subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles, products)
     y_position -= 20
     p.drawString(x_position, y_position, f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}")
     y_position -= 20
@@ -870,14 +951,17 @@ def generar_pdf(request, invoice_id):
 
     return response
 
-def calcular_totales(detalles):
+
+def calcular_totales(detalles, products):
     subtotal_sin_impuestos = 0
     iva12 = 0
 
     for detalle in detalles:
-        precio_total = detalle.precio_total
-        graba_iva = detalle.prod_id.prod_iva
-        
+        # Calcula el precio total directamente desde el detalle sin acceder a atributos no existentes
+        precio_total = detalle.quantity_invo_det * get_producto_precio(products, detalle.prod_id)
+
+        graba_iva = get_producto_iva(products, detalle.prod_id)
+
         if not isinstance(precio_total, (int, float)):
             continue
 
@@ -888,3 +972,4 @@ def calcular_totales(detalles):
     valor_total = subtotal_sin_impuestos + iva12
 
     return subtotal_sin_impuestos, iva12, valor_total
+
