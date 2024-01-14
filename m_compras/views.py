@@ -1,4 +1,6 @@
 from io import StringIO
+from msilib import Table
+from turtle import color
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -441,37 +443,26 @@ def listarDetalleFactura(request, factura_id):
         detalleFactura = [
             {
                 "ivo_det_id": detalle.ivo_det_id,
-                "prod_id": detalle.prod_id,
+                "prod_id": detalle.prod_id,  # Suponiendo que prod_id es la clave foránea a Product
                 "quantity_invo_det": detalle.quantity_invo_det,
                 "invo_det_invo_id": detalle.invo_det_invo_id.invo_id,
                 "producto_nombre": get_producto_nombre(productos_api, detalle.prod_id),
                 "precio_unidad": get_producto_precio(productos_api, detalle.prod_id),
                 "precio_total": detalle.quantity_invo_det
                 * get_producto_precio(productos_api, detalle.prod_id),
+                "producto_iva": get_producto_iva(productos_api, detalle.prod_id),
             }
             for detalle in detalles
         ]
 
-        paginator = Paginator(detalleFactura, 1)  # Muestra 1 detalle por página
-
-        # Obtener el número de página de la solicitud GET
-        page = request.GET.get("page")
-
-        try:
-            detalle_paginados = paginator.page(page)
-        except PageNotAnInteger:
-            detalle_paginados = paginator.page(1)
-        except EmptyPage:
-            detalle_paginados = paginator.page(paginator.num_pages)
-
+        # Agregar la información de la factura y los productos al contexto
         return render(
             request,
             "listarDetalleFactura.html",
             {
+                "detalles": detalleFactura,
                 "info_factura": info_factura,
                 "productos_api": productos_api,
-                "detalles": detalleFactura,
-                "detalles_paginados": detalle_paginados,
             },
         )
 
@@ -480,7 +471,7 @@ def listarDetalleFactura(request, factura_id):
         return render(
             request,
             "listarDetalleFactura.html",
-            {"detalles": [], "info_factura": {}, "productos_api": [], "detalles_paginados": []},
+            {"detalles": [], "info_factura": {}, "productos_api": []},
         )
 
 
@@ -494,8 +485,13 @@ def get_producto_precio(productos_api, prod_id):
     producto = next((p for p in productos_api if p["pro_id"] == prod_id), None)
     precio_str = (
         producto["pro_cost"] if producto else "0"
-    )  # Considera un valor por defecto
+    )
     return float(precio_str)
+
+# Funciones auxiliares para obtener nombre y precio del producto por ID
+def get_producto_iva(productos_api, prod_id):
+    producto = next((p for p in productos_api if p["pro_id"] == prod_id), None)
+    return producto["pro_iva"] if producto else ""
 
 
 def verificar_proveedor(request):
@@ -729,3 +725,166 @@ class Invoice_Detail_Insert_View(View):
 
         # Redirige a la misma vista después de procesar la solicitud POST
         return JsonResponse({"success": True})
+    
+
+from django.http import HttpResponse
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
+from .models import Personal  # Asegúrate de importar el modelo Personal desde tu aplicación
+
+def reporte_proveedores(request):
+    # Obtén los datos de la base de datos (supongamos que tienes un modelo llamado Proveedor)
+    proveedores = Providers.objects.all()
+
+    # Crea el objeto BytesIO para almacenar el PDF
+    buffer = BytesIO()
+
+    # Crea el objeto PDF usando reportlab
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+
+    # Configuración del estilo del documento
+    styles = getSampleStyleSheet()
+    style_heading = styles['Heading1']
+    style_body = styles['BodyText']
+
+    # Agrega contenido al PDF
+    contenido = []
+
+    # Agrega el encabezado con el título y la fecha
+    titulo = "Reporte de Proveedores"
+    fecha_actual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    contenido.append(Paragraph(titulo, style_heading))
+    contenido.append(Paragraph(f"Fecha de impresión: {fecha_actual}", style_body))
+
+    # Datos de la empresa y usuario que imprime (basados en el nombre de usuario)
+    # Asegúrate de ajustar los nombres de los campos según tu modelo de Personal
+    contenido.append(Paragraph(f"Empresa: COMPRAS", style_body))
+
+    # Agrega espacio en blanco
+    contenido.append(Spacer(1, 12))
+
+    # Crea una lista de datos para la tabla
+    data = [["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]]
+
+    for proveedor in proveedores:
+        data.append([proveedor.prov_name, proveedor.prov_dni, proveedor.prov_phone,
+                     proveedor.prov_email, proveedor.prov_city, proveedor.prov_status,
+                     proveedor.get_prov_type_display(), proveedor.prov_address])
+
+    # Crea la tabla y aplica estilos
+        tabla = Table(data)
+        tabla.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.orange),  # Color de fondo para la fila de encabezado
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),  # Reducir el espacio entre el texto y la celda superior
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ('FONTSIZE', (0, 0), (-1, -1), 7),  # Establecer el tamaño de la letra en 8 puntos
+            ('LEFTPADDING', (0, 0), (-1, -1), 8),  # Añadir un margen izquierdo de 12 puntos
+            ('RIGHTPADDING', (0, 0), (-1, -1), 8),  # Añadir un margen derecho de 12 puntos
+        ]))
+
+    # Agrega la tabla al contenido
+    contenido.append(tabla)
+
+    # Agrega espacio en blanco
+    contenido.append(Spacer(1, 12))
+
+    # Agrega espacio para firmas
+    contenido.append(Paragraph("Firmas:", style_body))
+
+    # Construye el documento
+    doc.build(contenido)
+
+    # Establece el puntero del búfer al principio
+    buffer.seek(0)
+
+    # Crea una respuesta HTTP con el contenido del PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=reporte_proveedores.pdf'
+    response.write(buffer.getvalue())
+
+    return response
+
+from django.shortcuts import render
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas
+from .models import Invoice, InvoiceDetail
+
+def generar_pdf(request, invoice_id):
+    try:
+        factura = Invoice.objects.get(invo_id=invoice_id)
+        detalles = InvoiceDetail.objects.filter(invo_det_invo_id=factura)
+    except (Invoice.DoesNotExist, InvoiceDetail.DoesNotExist) as e:
+        return HttpResponse("Error: La factura o los detalles no existen.")
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="factura_{invoice_id}.pdf"'
+
+    p = canvas.Canvas(response)
+
+    y_position = 800
+    x_position = 100
+
+    p.drawString(x_position, y_position, f"Cliente: {factura.invo_prov_id.prov_name}")
+    y_position -= 20
+    p.drawString(x_position, y_position, f"Fecha: {factura.invo_date}")
+    y_position -= 20
+    p.drawString(x_position, y_position, f"Tipo de Pago: {factura.invo_pay_type.pay_name}")
+
+    if factura.invo_pay_type.pay_name == 'Credito':
+        y_position -= 20
+        p.drawString(x_position, y_position, f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}")
+
+    y_position -= 20
+    p.drawString(x_position, y_position, "Detalles de la Factura:")
+    y_position -= 20
+
+    for detalle in detalles:
+        p.drawString(x_position, y_position, f"Producto: {detalle.prod_id.prod_name}")
+        y_position -= 20
+        p.drawString(x_position, y_position, f"Cantidad: {detalle.quantity_invo_det}")
+        y_position -= 20
+        p.drawString(x_position, y_position, f"Precio Unidad: {detalle.prod_id.prod_pvp}")
+        y_position -= 20
+        p.drawString(x_position, y_position, f"Precio Total: {detalle.precio_total}")
+        y_position -= 20
+        p.drawString(x_position, y_position, f"IVA: {'Si' if detalle.prod_id.prod_iva else 'No'}")
+
+    subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles)
+    y_position -= 20
+    p.drawString(x_position, y_position, f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}")
+    y_position -= 20
+    p.drawString(x_position, y_position, f"IVA 12%: {iva12:.2f}")
+    y_position -= 20
+    p.drawString(x_position, y_position, f"Valor Total: {valor_total:.2f}")
+
+    p.showPage()
+    p.save()
+
+    return response
+
+def calcular_totales(detalles):
+    subtotal_sin_impuestos = 0
+    iva12 = 0
+
+    for detalle in detalles:
+        precio_total = detalle.precio_total
+        graba_iva = detalle.prod_id.prod_iva
+        
+        if not isinstance(precio_total, (int, float)):
+            continue
+
+        subtotal_sin_impuestos += precio_total
+        if graba_iva:
+            iva12 += precio_total * 0.12
+
+    valor_total = subtotal_sin_impuestos + iva12
+
+    return subtotal_sin_impuestos, iva12, valor_total

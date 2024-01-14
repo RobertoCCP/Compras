@@ -2,6 +2,7 @@
 from django.urls import path
 from .views import (
     consultar_pago,
+    generar_pdf,
     login_view,
     dashboard_view,
     logout_view,
@@ -9,6 +10,7 @@ from .views import (
     consultar_proveedores,
     editar_proveedor,
     insertar_proveedor,
+    reporte_proveedores,
     vista_factura,
     consultar_facturas,
     listarDetalleFactura,
@@ -51,4 +53,7 @@ urlpatterns = [
         Invoice_Detail_Insert_View.as_view(),
         name="invoice_detail_insert",
     ),
+    path('reporte_proveedores/', reporte_proveedores, name='reporte_proveedores'),
+
+   path('generar_pdf/<int:invoice_id>/', generar_pdf, name='generar_pdf'),
 ]

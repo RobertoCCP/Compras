@@ -22,8 +22,12 @@
     <h1>Lista de Proveedores</h1><br>
     <form method="get" action="{% url 'insertar_proveedor' %}" style="display: flex; align-items: center;">
         <button type="submit" class="btn btn-success" style="margin-right: 10px;">Nuevo Proveedor</button>
-        <button type="button" class="btn btn-primary">Imprimir Proveedores</button>
     </form>
+    
+    <form id="pdf-form" style="display: flex; align-items: center;">
+        <button type="button" id="btn-generar-pdf" class="btn btn-primary">Imprimir Proveedores</button>
+    </form>
+    
     <form id="search-form" method="get" action="{% url 'consultar_proveedores' %}"
         style="display: flex; align-items: center; float: right; margin-bottom: 20px;">
         <input type="text" id="search-input" name="search" placeholder="Buscar..."
@@ -147,6 +151,26 @@
             window.location = url;
         }
     </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#btn-generar-pdf').on('click', function () {
+                // Realiza una solicitud al endpoint que genera el PDF
+                $.ajax({
+                    url: '{% url "reporte_proveedores" %}',
+                    type: 'GET',
+                    success: function () {
+                        // Redirige a la URL de la vista del informe en una nueva pestaña
+                        window.open('{% url "reporte_proveedores" %}', '_blank');
+                    },
+                    error: function () {
+                        console.error('Error al generar el PDF');
+                    }
+                });
+            });
+        });
+    </script>
+
     {% endblock %}
 
 </body>

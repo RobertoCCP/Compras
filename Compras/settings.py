@@ -80,14 +80,24 @@ WSGI_APPLICATION = 'Compras.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pruebas',
-        'USER': 'usuario',
-        'PASSWORD': 'admin123',
-        'HOST': '45.70.13.16',
-        'PORT': '5432',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'Ac53EA24fBeA642dFa2gABF3CCDc6fD4',
+        'HOST': 'roundhouse.proxy.rlwy.net',
+        'PORT': '41100',
     }
 }
 
+#DATABASES = {
+ #   'default': {
+  #      'ENGINE': 'django.db.backends.postgresql',
+   #     'NAME': 'pruebas',
+    #    'USER': 'usuario',
+     #   'PASSWORD': 'admin123',
+      #  'HOST': '45.70.13.16',
+       # 'PORT': '5432',
+   # }
+#}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

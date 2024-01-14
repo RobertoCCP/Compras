@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+  <link rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
   <h2>Listar Detalle Factura</h2>
-{% load static %}
- <link rel="stylesheet" href="{% static 'css/detf.css' %}">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/detf.css' %}" />
   <!-- Mostrar información del cliente, fecha y tipo de pago -->
+
+  <form id="pdf-form" style="display: flex; align-items: center;" action="{% url 'generar_pdf' invoice_id=info_factura.invo_id %}">
+    <button type="button" id="btn-generar-pdf" class="btn btn-primary">Imprimir </button>
+  </form>
   <p>
     Cliente: {{ info_factura.cliente_nombre }} | Fecha: {{ info_factura.fecha }} | Tipo de Pago: {{ info_factura.tipo_pago }}
     <!-- Mostrar la Fecha de Expiración solo si el pay_type es "Credito" -->
@@ -13,14 +18,15 @@
     {% endif %}
   </p>
 
-  <table class="table">
+  <table class="table table-striped" id="detalle-table">
     <thead>
       <tr>
-        <th># <i class="fas" onclick="ordenarPor('#')"></i></th>
-        <th>Producto  <i class="fas" onclick="ordenarPor('producto')"></i></th>
-        <th>Cantidad  <i class="fas " onclick="ordenarPor('cantidad')"></i></th>
-        <th>Precio Unidad  <i class="fas" onclick="ordenarPor('unidad')"></i></th>
-        <th>Precio Total   <i class="fas" onclick="ordenarPor('precio')"></i></th>
+        <th scope="col">#</th>
+        <th scope="col">Producto</th>
+        <th scope="col">Cantidad</th>
+        <th scope="col">Precio Unidad</th>
+        <th scope="col">Precio Total</th>
+        <th scope="col">IVA</th>
       </tr>
     </thead>
     <tbody>
@@ -30,30 +36,60 @@
           <td>{{ detalle.producto_nombre|default:'Desconocido' }}</td>
           <td>{{ detalle.quantity_invo_det }}</td>
           <td>{{ detalle.precio_unidad|default:'Desconocido' }}</td>
-          <td>{{ detalle.precio_total }}</td>
+          <td class="precio-total">{{ detalle.precio_total }}</td>
+          <td class="iva">{{ detalle.producto_iva }}</td>
         </tr>
       {% endfor %}
+      <!-- Fila para mostrar el subtotal sin impuestos -->
+      <tr>
+        <th colspan="5">Subtotal sin impuestos</th>
+        <td id="subtotal-sin-impuestos"></td>
+      </tr>
+      <!-- Fila para mostrar el IVA 12% -->
+      <tr>
+        <th colspan="5">IVA 12%</th>
+        <td id="iva-12"></td>
+      </tr>
+      <!-- Fila para mostrar el valor total -->
+      <tr>
+        <th colspan="5">Valor Total</th>
+        <td id="valor-total"></td>
+      </tr>
     </tbody>
   </table>
 
-   <!-- Paginación -->
-   <div class="pagination">
-    <span class="step-links">
-        {% if detalles_paginados.has_previous %}
-        <a href="?page=1"><i class="fas fa-angle-double-left"></i></a>
-        <a href="?page={{ detalles_paginados.previous_page_number }}"><i class="fas fa-angle-left"></i></a>
-        {% endif %}
-  
-        <span class="current">
-            Página {{ detalles_paginados.number }} de {{ detalles_paginados.paginator.num_pages }}.
-        </span>
-  
-        {% if detalles_paginados.has_next %}
-        <a href="?page={{ detalles_paginados.next_page_number }}"><i class="fas fa-angle-right"></i></a>
-        <a href="?page={{ detalles_paginados.paginator.num_pages }}"><i class="fas fa-angle-double-right"></i></a>
-        {% endif %}
-    </span>
-  </div>
-{% endblock %}
+  <script>
+    // Script de JavaScript para calcular el subtotal sin impuestos, IVA 12% y Valor Total
+    document.addEventListener('DOMContentLoaded', function () {
+      calcularTotales()
+    })
+    
+    function calcularTotales() {
+      var subtotalSinImpuestos = 0
+      var iva12 = 0
+    
+      var precioTotalCells = document.querySelectorAll('.precio-total')
+      var ivaCells = document.querySelectorAll('.iva')
+    
+      precioTotalCells.forEach(function (cell,index) {
+        var precioTotal = parseFloat(cell.textContent)
+        var grabaIVA = ivaCells[index].textContent.toLowerCase() === 'true' // Convertir a minúsculas y evaluar como booleano
+        if (!isNaN(precioTotal)) {
+          subtotalSinImpuestos += precioTotal
+          if (grabaIVA) {
+            iva12 += precioTotal * 0.12 // 12% de IVA
+          }
+        }
+      })
+      console.log('IVA', iva12)
+    
+      var valorTotal = subtotalSinImpuestos + iva12
+    
+      document.getElementById('subtotal-sin-impuestos').textContent = subtotalSinImpuestos.toFixed(2)
+      document.getElementById('iva-12').textContent = iva12.toFixed(2)
+      document.getElementById('valor-total').textContent = valorTotal.toFixed(2)
+    }
+  </script>
 
-US#13 -
+
+{% endblock %}
