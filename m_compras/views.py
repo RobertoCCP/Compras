@@ -881,7 +881,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from .models import Invoice, InvoiceDetail
-
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
 def generar_pdf(request, invoice_id):
     # Obtén los productos de la API
@@ -898,56 +899,81 @@ def generar_pdf(request, invoice_id):
     except (Invoice.DoesNotExist, InvoiceDetail.DoesNotExist) as e:
         return HttpResponse("Error: La factura o los detalles no existen.")
 
+
+       # Configuración del documento PDF
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="factura_{invoice_id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="factura_{invoice_id}.pdf"'
 
-    p = canvas.Canvas(response)
+    doc = SimpleDocTemplate(response, pagesize=letter)
 
-    y_position = 800
-    x_position = 100
+    # Contenido del PDF
+    story = []
+    subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles, products)
+    # Encabezado
+    story.append(Paragraph("LOGO DE LA EMPRESA", getSampleStyleSheet()['Heading1']))
+    story.append(Paragraph("Nombre de la Empresa", getSampleStyleSheet()['Heading2']))
+    story.append(Paragraph("Dirección de la Empresa", getSampleStyleSheet()['BodyText']))
 
-    p.drawString(x_position, y_position, f"Cliente: {factura.invo_prov_id.prov_name}")
-    y_position -= 20
-    p.drawString(x_position, y_position, f"Fecha: {factura.invo_date}")
-    y_position -= 20
-    p.drawString(x_position, y_position, f"Tipo de Pago: {factura.invo_pay_type.pay_name}")
+    # Información del cliente
+    story.append(Spacer(1, 12))  # Espacio en blanco
+    story.append(Paragraph("Información del Cliente", getSampleStyleSheet()['Heading2']))
+    story.append(Paragraph(f"Nombre del Cliente: {factura.invo_prov_id.prov_name}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph(f"Dirección del Cliente: {factura.invo_prov_id.prov_address}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph(f"Número de Teléfono: {factura.invo_prov_id.prov_phone}", getSampleStyleSheet()['BodyText']))
 
-    if factura.invo_pay_type.pay_name == 'Credito':
-        y_position -= 20
-        p.drawString(x_position, y_position, f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}")
+    # Información de la compra (tabla)
+    story.append(Spacer(1, 12))  # Espacio en blanco
+    story.append(Paragraph("Información de la Compra", getSampleStyleSheet()['Heading2']))
 
-    y_position -= 20
-    p.drawString(x_position, y_position, "Detalles de la Factura:")
-    y_position -= 20
+    data = [['SL', 'Descripción del Producto', 'Precio', 'Cantidad', 'Impuesto', 'Total']]
 
+    sl = 1
     for detalle in detalles:
-        # Utiliza las funciones auxiliares para obtener los datos del producto desde la API
         prod_name = get_producto_nombre(products, detalle.prod_id)
         prod_pvp = get_producto_precio(products, detalle.prod_id)
         prod_iva = get_producto_iva(products, detalle.prod_id)
-        # Calcula el precio total aquí
         precio_total = detalle.quantity_invo_det * prod_pvp
 
-        p.drawString(x_position, y_position, f"Producto: {prod_name}")
-        y_position -= 20
-        p.drawString(x_position, y_position, f"Cantidad: {detalle.quantity_invo_det}")
-        y_position -= 20
-        p.drawString(x_position, y_position, f"Precio Unidad: {prod_pvp}")
-        y_position -= 20
-        p.drawString(x_position, y_position, f"Precio Total: {precio_total}")
-        y_position -= 20
-        p.drawString(x_position, y_position, f"IVA: {'Si' if prod_iva else 'No'}")
+        data.append([sl, prod_name, f"${prod_pvp:.2f}", detalle.quantity_invo_det, f"${prod_iva:.2f}", f"${precio_total:.2f}"])
+        sl += 1
 
-    subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles, products)
-    y_position -= 20
-    p.drawString(x_position, y_position, f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}")
-    y_position -= 20
-    p.drawString(x_position, y_position, f"IVA 12%: {iva12:.2f}")
-    y_position -= 20
-    p.drawString(x_position, y_position, f"Valor Total: {valor_total:.2f}")
+    # Estilo de la tabla
+    style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.orange),
+                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige)])
 
-    p.showPage()
-    p.save()
+    # Construir la tabla y aplicar el estilo
+    compra_table = Table(data)
+    compra_table.setStyle(style)
+
+    story.append(compra_table)
+
+    # Detalles adicionales de la factura
+    story.append(Spacer(1, 12))  # Espacio en blanco
+    story.append(Paragraph("Detalles Adicionales", getSampleStyleSheet()['Heading2']))
+    story.append(Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}", getSampleStyleSheet()['BodyText']))
+
+
+    if factura.invo_pay_type.pay_name == 'Contado':
+        story.append(Paragraph(f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}", getSampleStyleSheet()['BodyText']))
+
+    # Totales
+    story.append(Spacer(1, 12))  # Espacio en blanco
+    story.append(Paragraph("Totales", getSampleStyleSheet()['Heading2']))
+    story.append(Paragraph(f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph(f"IVA 12%: {iva12:.2f}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph(f"Valor Total: {valor_total:.2f}", getSampleStyleSheet()['BodyText']))
+
+    # Pie de página
+    story.append(Spacer(1, 12))  # Espacio en blanco
+    story.append(Paragraph("Condiciones de Pago", getSampleStyleSheet()['Heading2']))
+    story.append(Paragraph("El pago se efectuará en 15 días.", getSampleStyleSheet()['BodyText']))
+
+    # Construir el PDF
+    doc.build(story)
 
     return response
 
