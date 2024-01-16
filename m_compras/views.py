@@ -75,7 +75,10 @@ def consultar_proveedores(request):
         proveedores_paginados = paginator.page(1)
     except EmptyPage:
         proveedores_paginados = paginator.page(paginator.num_pages)
-
+    action = "Consultar Proveedores"
+    function_name = "PRC-PROVIDERS-READ"  # Ajustar según sea necesario
+    observation = ""
+    auditar_modulo_compras(request,action,function_name,observation)
     return render(
         request,
         "consultar_proveedores.html",
@@ -95,6 +98,10 @@ def editar_proveedor(request, prov_id):
             with transaction.atomic():
                 if form.is_valid():
                     form.save()
+                    action = "Editar Proveedores"
+                    function_name = "PRC-PROVIDERS-UPDATE"  # Ajustar según sea necesario
+                    observation =  f"Proveedor editado : {prov_id}"
+                    auditar_modulo_compras(request,action,function_name,observation)
                     return JsonResponse(
                         {
                             "success": True,
@@ -113,7 +120,6 @@ def editar_proveedor(request, prov_id):
 
     else:
         form = EditProviderForm(instance=provider)
-
     return render(
         request, "editar_proveedor.html", {"form": form, "provider": provider}
     )
@@ -130,6 +136,10 @@ def insertar_proveedor(request):
             with transaction.atomic():
                 if form.is_valid():
                     form.save()
+                    action = "Crear Proveedores"
+                    function_name = "PRC-PROVIDERS-CREATE"  # Ajustar según sea necesario
+                    observation =  f"Proveedor creado "
+                    auditar_modulo_compras(request,action,function_name,observation)
                     return JsonResponse(
                         {"success": True, "message": "Proveedor guardado exitosamente"}
                     )
@@ -147,7 +157,83 @@ def insertar_proveedor(request):
         form = ProviderForm()
 
     return render(request, "insertar_proveedor.html", {"form": form})
+def login2(request):
+    if request.method == "POST":
+        # Obtener las credenciales del formulario
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        # Llamar a la función de inicio de sesión
+        action = "LOGIN"
+        function_name = "PRC-LOGIN"  # Ajustar según sea necesario
+        observation = ""
+        result = perform_login(username, password)
+        if  result.get("success"):
+            # Usuario autenticado con éxito, realizar acciones adicionales si es necesario
+            request.session['login_result'] = result
+            auditar_modulo_compras(request,action,function_name,observation)
+            return JsonResponse({"success": True, "redirect_url": "/dashboard"})
+        else:
+            # Usuario no autenticado, devolver un mensaje de error
+            return JsonResponse({"success": False, "error":'Credenciales incorrectas'})
 
+    # Si no es un POST, renderizar el formulario de inicio de sesión
+    return render(request, "login.html")
+
+def perform_login(username, password):
+    url = "https://security-module-utn.azurewebsites.net/api/auth"
+    data = {
+        "username": username,
+        "password": password
+    }
+  
+    try:
+        # Usa requests.get en lugar de urllib.request.get
+        response = requests.post(url, json=data)
+        if response.status_code == 200 or response.status_code == 201:
+            response_buffer = StringIO(response.text)
+            result = json.load(response_buffer)
+            return {"success": True, "data": result}
+        else:
+            return {"success": False, "error": f"Error en la solicitud: Código de estado {response.status_code}"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "error": f"Error en la solicitud: {e}"}
+def logout2(request):
+    # Eliminar todas las variables de sesión relacionadas con el usuario
+    request.session.clear()
+    return redirect('login')
+def auditar_modulo_compras( request,action ,functionName, observation):
+    url = 'https://security-module-utn.azurewebsites.net/api/audit'
+    login_result = request.session.get('login_result', None)
+    token =login_result.get("data", {}).get("token")
+    username= login_result.get("data", {}).get("username")
+    description = f"{action} - Usuario: {username}"
+    ip_address =  request.META.get("REMOTE_ADDR", None)
+    headers = {
+        'Authorization': f"Bearer {token}",
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'action': action,
+        'description': description,
+        'ip': ip_address,
+        'functionName': functionName,
+        'observation': observation
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+
+        if response.status_code == 200 or response.status_code == 201:
+            result = response.json()
+            print(data)
+            print('Datos de auditoría guardados correctamente:', result)
+            return {"success": True, "data": result}
+        else:
+            print(f"Error en la solicitud: Código de estado {response.status_code}")
+            return {"success": False, "error": f"Error en la solicitud: Código de estado {response.status_code}"}
+    except requests.exceptions.RequestException as e:
+        print(f"Error en la solicitud: {e}")
+        return {"success": False, "error": f"Error en la solicitud: {e}"}
 
 def login_view(request):
     if request.method == "POST":
@@ -404,7 +490,10 @@ def consultar_facturas(request):
 
             # Muestra el mensaje de alerta
             return render(request, "invoice_read.html", {"mensaje_alerta": mensaje})
-
+        action = "Consultar Facturas"
+        function_name = "PRC-INVOICE-READ"  # Ajustar según sea necesario
+        observation = ""
+        auditar_modulo_compras(request,action,function_name,observation)
         return render(
             request,
             "invoice_read.html",
