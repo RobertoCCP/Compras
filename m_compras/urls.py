@@ -19,11 +19,15 @@ from .views import (
     add_to_cart,
     Invoice_Insert,
     Invoice_Detail_Insert_View,
+    login2,
+    logout2
 )
 
 urlpatterns = [
     path("consultar_pago/", consultar_pago, name="consultar_pago"),
     path("login/", login_view, name="login"),
+    path("login2/", login2, name="login2"),
+    path("logout2/", logout2, name="logout2"),
     path("logout/", logout_view, name="logout"),
     path("dashboard/", dashboard_view, name="dashboard"),
     path(
