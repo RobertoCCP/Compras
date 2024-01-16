@@ -1,5 +1,4 @@
 from io import StringIO
-from msilib import Table
 from turtle import color
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404, redirect
