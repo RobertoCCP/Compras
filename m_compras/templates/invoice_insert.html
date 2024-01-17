@@ -91,7 +91,7 @@
         <input type="hidden" id="invo_prov_id" name="invo_prov_id" value="" />
 
         <select id="invo_pay_type" name="invo_pay_type">
-          {% if provider.prov_type == 'Crédito' %}
+          {% if provider.prov_type == 1 %}
           <option value="1" selected>Crédito</option>
           <option value="2">Contado</option>
           {% else %}
