@@ -32,7 +32,7 @@
                 <span class="text-primary font-weight-bold">{{ num_providers }}</span>
             </div>
 
-            <div class="card">
+            <div class="card" data-url="{% url 'consultar_facturas' %}">
                 <div class="card-inner">
                     <p class="text-primary">Lista de Facturas</p>
                     <span class="fas fa-table text-orange"></span>
@@ -40,7 +40,7 @@
                 <span class="text-primary font-weight-bold">{{ num_invoices }}</span>
             </div>
 
-            <div class="card">
+            <div class="card" data-url="{% url 'invoice_insert' %}">
                 <div class="card-inner">
                     <p class="text-primary">Detalle de Facturas</p>
                     <span class="fa fa-info-circle text-green"></span>
@@ -48,13 +48,13 @@
                 <span class="text-primary font-weight-bold">{{ num_invoice_details }}</span>
             </div>
 
-            <div class="card">
+          <!--   <div class="card">
                 <div class="card-inner">
                     <p class="text-primary">Auditoria</p>
                     <span class="material-icons-outlined text-red">notification_important</span>
                 </div>
                 <span class="text-primary font-weight-bold">56</span>
-            </div>
+            </div> -->
 
         </div>
 
