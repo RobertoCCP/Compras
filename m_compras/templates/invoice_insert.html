@@ -90,14 +90,19 @@
         <!-- Ocultar el ID del proveedor -->
         <input type="hidden" id="invo_prov_id" name="invo_prov_id" value="" />
 
-        <select id="invo_pay_type" name="invo_pay_type">
-          {% if provider.prov_type == 'Crédito' %}
-          <option value="1" selected>Crédito</option>
-          <option value="2">Contado</option>
-          {% else %}
-          <option value="2" selected>Contado</option>
-          {% endif %}
-        </select>
+
+        <div class="form-group">
+          <label for="invo_pay_type">Tipo de Pago:</label>
+          <select id="invo_pay_type" name="invo_pay_type">
+            {% if provider.prov_type == 1 %}
+              <option value="1" selected>Crédito</option>
+              <option value="2">Contado</option>
+            {% else %}
+              <option value="2" selected>Contado</option>
+            {% endif %}
+          </select>
+        </div>
+        
 
         <div class="form-group">
           <label for="invo_number">Número de Factura:</label>
