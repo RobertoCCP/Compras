@@ -1,6 +1,6 @@
 from io import StringIO
 import locale
-from turtle import color
+from turtle import color, left
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -1107,6 +1107,7 @@ from reportlab.pdfgen import canvas
 from .models import Invoice, InvoiceDetail
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from datetime import datetime, timedelta
 
 def generar_pdf(request, invoice_id):
     # Obtén los productos de la API
@@ -1129,25 +1130,121 @@ def generar_pdf(request, invoice_id):
     response['Content-Disposition'] = f'attachment; filename="factura_{invoice_id}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter)
+        # Configurar el estilo del documento
+    styles = getSampleStyleSheet()
 
     # Contenido del PDF
     story = []
     subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles, products)
-    # Encabezado
-    story.append(Paragraph("LOGO DE LA EMPRESA", getSampleStyleSheet()['Heading1']))
-    story.append(Paragraph("Nombre de la Empresa", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph("Dirección de la Empresa", getSampleStyleSheet()['BodyText']))
+
+    imagen_fondo = request.build_absolute_uri(static('images/f.jpg'))
+
+    # Agregar la imagen como fondo en cada página
+    def draw_background(canvas, doc):
+        canvas.saveState()
+        canvas.drawImage(imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1])
+        canvas.restoreState()
+
+    # Estilo personalizado para el título del documento
+    titulo_documento_style = ParagraphStyle(
+        'TituloDocumentoStyle',
+        parent=styles['Heading1'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=20,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=0,
+    )
+
+    # Estilo personalizado para el subtítulo del documento
+    subtitulo_documento_style = ParagraphStyle(
+        'SubtituloDocumentoStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=16,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=0,
+    )
+
+    # Estilo personalizado para el texto del cuerpo del documento
+    cuerpo_documento_style = ParagraphStyle(
+        'CuerpoDocumentoStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Regular"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=colors.black,  # Color del texto (ajusta según tu preferencia)
+        spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        spaceBefore=6,  # Espacio antes del párrafo (puedes ajustarlo según tu preferencia)
+        alignment=0,
+    )
+
+    # Ahora puedes usar estos estilos en tu código
+    story.append(Paragraph("LOGO DE LA EMPRESA", titulo_documento_style))
+    story.append(Paragraph("MÓDULO DE COMPRAS", subtitulo_documento_style))
+    story.append(Paragraph("Av. 17 de julio, FICA", cuerpo_documento_style))
+
+    # Configura el idioma para obtener la fecha en español
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
+    # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
+    fecha = datetime.now().strftime('%d de %B de %Y')
+    hora = datetime.now().strftime('%I:%M %p')
+    fecha_hora_texto = f"Fecha de impresión: {fecha}, {hora}"
+    fecha_hora_style = ParagraphStyle(
+        'FechaHoraStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=0,  # 0 representa la alineación a la izquierda
+        spaceBefore=-12,
+    )
+    story.append(Spacer(1, 5))  # Separación pequeña
+    story.append(Paragraph(fecha_hora_texto, fecha_hora_style))
+
 
     # Información del cliente
     story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Información del Cliente", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph(f"Nombre del Cliente: {factura.invo_prov_id.prov_name}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"Dirección del Cliente: {factura.invo_prov_id.prov_address}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"Número de Teléfono: {factura.invo_prov_id.prov_phone}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph("Información del Cliente", subtitulo_documento_style))
+    story.append(Paragraph(f"Nombre del Cliente: {factura.invo_prov_id.prov_name}", cuerpo_documento_style))
+    story.append(Paragraph(f"Dirección del Cliente: {factura.invo_prov_id.prov_address}", cuerpo_documento_style))
+    story.append(Paragraph(f"Número de Teléfono: {factura.invo_prov_id.prov_phone}", cuerpo_documento_style))
+
+        # Estilo personalizado para los detalles adicionales de la factura
+    detalles_factura_style = ParagraphStyle(
+        'DetallesFacturaStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=2,
+    )
+
+            # Estilo personalizado para los detalles adicionales de la factura
+    tipo_style = ParagraphStyle(
+        'TipoStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Regular"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=colors.black,  # Color del texto (ajusta según tu preferencia)
+        alignment=2,
+    )
+
+    # Detalles adicionales de la factura
+    story.append(Spacer(1, -100))  # Espacio en blanco
+    story.append(Paragraph("Detalles Adicionales", detalles_factura_style))
+    story.append(Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}",  tipo_style))
+
+    if factura.invo_pay_type.pay_name == 'Contado':
+        story.append(Paragraph(f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}",  tipo_style))
 
     # Información de la compra (tabla)
-    story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Información de la Compra", getSampleStyleSheet()['Heading2']))
+    story.append(Spacer(1, 50))  # Espacio en blanco
+    story.append(Paragraph("Información de la Compra", subtitulo_documento_style))
 
     data = [['SL', 'Descripción del Producto', 'Precio', 'Cantidad', 'Impuesto', 'Total']]
 
@@ -1165,9 +1262,11 @@ def generar_pdf(request, invoice_id):
     style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.orange),
                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Courier'),
                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige)])
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 6),  # Ajusta el relleno izquierdo
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 6),])
 
     # Construir la tabla y aplicar el estilo
     compra_table = Table(data)
@@ -1175,29 +1274,85 @@ def generar_pdf(request, invoice_id):
 
     story.append(compra_table)
 
-    # Detalles adicionales de la factura
-    story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Detalles Adicionales", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}", getSampleStyleSheet()['BodyText']))
-
-
-    if factura.invo_pay_type.pay_name == 'Contado':
-        story.append(Paragraph(f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}", getSampleStyleSheet()['BodyText']))
-
+        # Estilo personalizado para los detalles adicionales de la factura
+    totales_factura_style = ParagraphStyle(
+        'DetallesFacturaStyle',
+        parent=styles['Heading2'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=2,
+    )
     # Totales
     story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Totales", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph(f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"IVA 12%: {iva12:.2f}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"Valor Total: {valor_total:.2f}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph("Totales", totales_factura_style))
 
-    # Pie de página
+    # Ajustar el estilo para justificar a la derecha
+    subtotal_sin_impuestos_style = ParagraphStyle(
+        'SubtotalSinImpuestosStyle',
+        parent=getSampleStyleSheet()['BodyText'],
+        spaceAfter=8, 
+        borderPadding=(5, 5, 5, 5),
+        borderColor=colors.orange,
+        borderWidth=1,
+        alignment=2,  # Alinea a la derecha
+        leftIndent=300,
+        fontName='Courier', 
+    )
+    iva12_style = ParagraphStyle(
+        'IVA12Style',
+        borderPadding=(5, 5, 5, 5),
+        spaceAfter=8, 
+        borderColor=colors.orange,
+        borderWidth=1,
+        alignment=2,  # Alinea a la derecha
+        leftIndent=300,
+        fontName='Courier', 
+    )
+    valor_total_style = ParagraphStyle(
+        'ValorTotalStyle',
+        parent=getSampleStyleSheet()['BodyText'],
+        spaceAfter=8, 
+        borderPadding=(5, 5, 5, 5),
+        borderColor=colors.orange,
+        borderWidth=1,
+        alignment=2,  # Alinea a la derecha
+        leftIndent=300,
+        fontName='Courier', 
+    )
+
+    story.append(Paragraph(f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}", subtotal_sin_impuestos_style))
+    story.append(Paragraph(f"IVA 12%: {iva12:.2f}", iva12_style))
+    story.append(Paragraph(f"Valor Total: {valor_total:.2f}", valor_total_style))
+
+    # Obtener la fecha de expiración desde tu objeto 'factura' (asegúrate de que sea un objeto de tipo datetime)
+    fecha_expiracion = factura.expedition_date or None
+
+    # Convertir la cadena 'fecha_hora_texto' a un objeto datetime
+    fecha_hora_texto_datetime = datetime.strptime(fecha_hora_texto, "Fecha de impresión: %d de %B de %Y, %I:%M %p")
+
+    # Convertir la fecha de expiración a datetime si no es None
+    fecha_expiracion_datetime = datetime.combine(fecha_expiracion, datetime.min.time()) if fecha_expiracion else None
+
+    # Calcular la diferencia en días entre la fecha de expiración y la fecha de impresión
+    diferencia_dias = (fecha_expiracion_datetime - fecha_hora_texto_datetime).days if fecha_expiracion_datetime else None
+
+    # Mensaje según la diferencia de días
+    if diferencia_dias is not None and diferencia_dias > 0:
+        mensaje_pago = f"El pago se efectuará en {diferencia_dias} días."
+    elif diferencia_dias == 0:
+        mensaje_pago = "Hoy es el último día para realizar el pago."
+    else:
+        mensaje_pago = "Plazo finalizado."
+
     story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Condiciones de Pago", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph("El pago se efectuará en 15 días.", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph("Condiciones de Pago", detalles_factura_style))
+    story.append(Paragraph(mensaje_pago, valor_total_style))
 
     # Construir el PDF
-    doc.build(story)
+    doc.build(story, onFirstPage=draw_background)
 
     return response
 
