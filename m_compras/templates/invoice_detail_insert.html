@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-qzQDbl2BMX68fiWlHqESgHnQUdyNaa9Uz44e5w70iJWILl3e9MCZkP1CSn8LkJB4sGjgGqkg8H6fs9lT2cpliQ==" crossorigin="anonymous" />
       <title>Tienda de Productos</title>
       <link rel="stylesheet" href="{% static 'css/deta.css' %}" />
       <!-- ... (otras etiquetas meta, title, etc.) ... -->
@@ -57,6 +58,9 @@
           {% endif %}
           <!-- Botón para registrar productos -->
           <button id="subir" type="button" onclick="registerProducts()">Registrar Productos</button>
+          <button id="imprimir" type="button" onclick="generarPDF()">
+            <i class="fas fa-file-pdf"></i> Generar PDF
+          </button>
         </form>
       </div>
 
@@ -162,7 +166,10 @@ function updateInvoiceDetailTable() {
             // Limpiar el array después de enviar los datos
             products_data = [];
         }
+        
       </script>
+
+
       
     </body>
 {% endblock %}
