@@ -6,6 +6,21 @@ class ProviderForm(forms.ModelForm):
         model = Providers
         fields = '__all__'
 
+    def clean_prov_city(self):
+        prov_city = self.cleaned_data.get('prov_city')
+
+        # Verifica la longitud del valor ingresado en prov_city
+        if len(prov_city) > 20:
+            raise forms.ValidationError("La ciudad no puede tener más de 20 caracteres.")
+
+        # Verifica si hay caracteres especiales en el valor ingresado
+        caracteres_especiales = "!@#$%^&*()_+{}[]:;<>,.?~/-"
+        if any(char in caracteres_especiales for char in prov_city):
+            raise forms.ValidationError("La ciudad no puede contener caracteres especiales.")
+
+        return prov_city
+    
+
 class EditProviderForm(forms.ModelForm):
     class Meta:
         model = Providers
