@@ -385,7 +385,16 @@ def vista_factura(request):
     return render(request, "detalle_factura.html", context)
 
 
+
+import requests
+import json
+from io import StringIO
+# Variable global para almacenar la lista de productos
+products_data = []
+
 def load_products():
+    global products_data
+
     url = "https://inventario-phue.onrender.com/inventario/products/"
 
     try:
@@ -394,8 +403,8 @@ def load_products():
 
         if response.status_code == 200:
             response_buffer = StringIO(response.text)
-            products = json.load(response_buffer)
-            return products
+            products_data = json.load(response_buffer)
+            return products_data
         else:
             return f"Error en la solicitud: Código de estado {response.status_code}"
     except requests.exceptions.RequestException as e:
