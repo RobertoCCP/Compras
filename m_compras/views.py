@@ -1413,3 +1413,25 @@ def calcular_totales(detalles, products):
 
     return subtotal_sin_impuestos, iva12, valor_total
 
+
+
+from django.shortcuts import render, get_object_or_404
+from .models import Titanic
+
+def search_passenger(request):
+    passenger = None
+    if 'passengerid' in request.GET:
+        id = request.GET['passengerid']
+        if id:
+            passenger = get_object_or_404(Titanic, passengerid=id)
+
+    return render(request, 'search.html', {'passenger': passenger})
+
+
+
+# Las vistas correspondientes en views.py
+def bienvenida(request):
+    return render(request, 'search.html')
+
+def formulario(request):
+    return render(request, 'f.html')
