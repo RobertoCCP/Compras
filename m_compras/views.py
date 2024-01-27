@@ -185,6 +185,8 @@ def login2(request):
             # Usuario autenticado con éxito, realizar acciones adicionales si es necesario
             request.session['login_result'] = result
             auditar_modulo_compras(request,action,function_name,observation)
+            request.session['usuario'] = result.get("data", {}).get("username")
+            usuario=request.session.get('usuario', None)
             return JsonResponse({"success": True, "redirect_url": "/dashboard"})
         else:
             # Usuario no autenticado, devolver un mensaje de error
