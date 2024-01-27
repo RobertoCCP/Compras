@@ -121,7 +121,6 @@ def editar_proveedor(request, prov_id):
             # Captura la excepción y devuelve solo el mensaje personalizado
             error_message = str(e)
             return JsonResponse({"success": False, "error": error_message})
-
     else:
         form = EditProviderForm(instance=provider)
     return render(
@@ -141,6 +140,8 @@ def permisos(request, permisoRequerido):
         if permiso == permisoRequerido:
             return True
     return False
+
+
 def insertar_proveedor(request):
     if request.method == "POST":
         form = ProviderForm(request.POST)
@@ -712,7 +713,7 @@ class Invoice_Insert(View):
     def get(self, request, *args, **kwargs):
         context = {"products": load_products()}
         dni = request.GET.get("dni", "")
-        provider = Providers.objects.filter(prov_dni=dni).first()
+        provider = Providers.objects.filter(prov_dni=dni, prov_status=True).first()
 
         if provider:
             context["provider"] = provider
@@ -732,7 +733,7 @@ class Invoice_Insert(View):
                 action = "Crear Factura"
                 function_name = "PRC-INVOICE-CREATE"  # Ajustar según sea necesario
                 observation = ""
-                auditar_modulo_compras(request, action,function_name,observation)
+                auditar_modulo_compras(request, action, function_name, observation)
                 # Obtener el último ID de la factura recién creada
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -858,7 +859,7 @@ class Invoice_Detail_Insert_View(View):
             action = "Crear Detalle Factura"
             function_name = "PRC-INVOICE_DETAIL-CREATE"  # Ajustar según sea necesario
             observation = ""
-            auditar_modulo_compras(request, action,function_name,observation)
+            auditar_modulo_compras(request, action, function_name, observation)
             invoice_detail.save()
 
         # Redirige a la misma vista después de procesar la solicitud POST
