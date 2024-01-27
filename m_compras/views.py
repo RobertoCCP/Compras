@@ -78,7 +78,7 @@ def consultar_proveedores(request):
     action = "Consultar Proveedores"
     function_name = "PRC-PROVIDERS-READ"  # Ajustar según sea necesario
     observation = ""
-    auditar_modulo_compras(request,action,function_name,observation)
+    auditar_modulo_compras(request, action, function_name, observation)
     return render(
         request,
         "consultar_proveedores.html",
@@ -90,22 +90,26 @@ from django.http import HttpResponse, JsonResponse
 
 
 def editar_proveedor(request, prov_id):
-    login_result = request.session.get('login_result', None)
-    funciones  =login_result.get("data", {}).get("token")
-    funcion= 'PRC-PROVIDERS-UPDATE'
+    login_result = request.session.get("login_result", None)
+    funciones = login_result.get("data", {}).get("token")
+    funcion = "PRC-PROVIDERS-UPDATE"
     provider = get_object_or_404(Providers, prov_id=prov_id)
     if request.method == "POST":
         form = EditProviderForm(request.POST, instance=provider)
-        if not permisos(request,'PRC-PROVIDERS-UPDATE'):
-           return HttpResponseForbidden("No tienes permiso para acceder a esta función.")
+        if not permisos(request, "PRC-PROVIDERS-UPDATE"):
+            return HttpResponseForbidden(
+                "No tienes permiso para acceder a esta función."
+            )
         try:
             with transaction.atomic():
                 if form.is_valid():
                     form.save()
                     action = "Editar Proveedores"
-                    function_name = "PRC-PROVIDERS-UPDATE"  # Ajustar según sea necesario
-                    observation =  f"Proveedor editado : {prov_id}"
-                    auditar_modulo_compras(request,action,function_name,observation)
+                    function_name = (
+                        "PRC-PROVIDERS-UPDATE"  # Ajustar según sea necesario
+                    )
+                    observation = f"Proveedor editado : {prov_id}"
+                    auditar_modulo_compras(request, action, function_name, observation)
                     return JsonResponse(
                         {
                             "success": True,
@@ -133,8 +137,9 @@ from django.db import transaction
 from django.http import HttpResponseForbidden
 import urllib.request
 
+
 def permisos(request, permisoRequerido):
-    login_result = request.session.get('login_result', None)
+    login_result = request.session.get("login_result", None)
     funciones = login_result.get("data", {}).get("functions", [])
     for permiso in funciones:
         if permiso == permisoRequerido:
@@ -145,16 +150,20 @@ def permisos(request, permisoRequerido):
 def insertar_proveedor(request):
     if request.method == "POST":
         form = ProviderForm(request.POST)
-        if not permisos(request,'PRC-PROVIDERS-CREATE'):
-           return HttpResponseForbidden("No tienes permiso para acceder a esta función.")
+        if not permisos(request, "PRC-PROVIDERS-CREATE"):
+            return HttpResponseForbidden(
+                "No tienes permiso para acceder a esta función."
+            )
         try:
             with transaction.atomic():
                 if form.is_valid():
                     form.save()
                     action = "Crear Proveedores"
-                    function_name = "PRC-PROVIDERS-CREATE"  # Ajustar según sea necesario
-                    observation =  f"Proveedor creado "
-                    auditar_modulo_compras(request,action,function_name,observation)
+                    function_name = (
+                        "PRC-PROVIDERS-CREATE"  # Ajustar según sea necesario
+                    )
+                    observation = f"Proveedor creado "
+                    auditar_modulo_compras(request, action, function_name, observation)
                     return JsonResponse(
                         {"success": True, "message": "Proveedor guardado exitosamente"}
                     )
@@ -172,6 +181,8 @@ def insertar_proveedor(request):
         form = ProviderForm()
 
     return render(request, "insertar_proveedor.html", {"form": form})
+
+
 def login2(request):
     if request.method == "POST":
         # Obtener las credenciales del formulario
@@ -182,27 +193,25 @@ def login2(request):
         function_name = "PRC-LOGIN"  # Ajustar según sea necesario
         observation = ""
         result = perform_login(username, password)
-        if  result.get("success"):
+        if result.get("success"):
             # Usuario autenticado con éxito, realizar acciones adicionales si es necesario
-            request.session['login_result'] = result
-            auditar_modulo_compras(request,action,function_name,observation)
-            request.session['usuario'] = result.get("data", {}).get("username")
-            usuario=request.session.get('usuario', None)
+            request.session["login_result"] = result
+            auditar_modulo_compras(request, action, function_name, observation)
+            request.session["usuario"] = result.get("data", {}).get("username")
+            usuario = request.session.get("usuario", None)
             return JsonResponse({"success": True, "redirect_url": "/dashboard"})
         else:
             # Usuario no autenticado, devolver un mensaje de error
-            return JsonResponse({"success": False, "error":'Credenciales incorrectas'})
+            return JsonResponse({"success": False, "error": "Credenciales incorrectas"})
 
     # Si no es un POST, renderizar el formulario de inicio de sesión
     return render(request, "login.html")
 
+
 def perform_login(username, password):
     url = "https://security-module-utn.azurewebsites.net/api/auth"
-    data = {
-        "username": username,
-        "password": password
-    }
-  
+    data = {"username": username, "password": password}
+
     try:
         # Usa requests.get en lugar de urllib.request.get
         response = requests.post(url, json=data)
@@ -211,30 +220,34 @@ def perform_login(username, password):
             result = json.load(response_buffer)
             return {"success": True, "data": result}
         else:
-            return {"success": False, "error": f"Error en la solicitud: Código de estado {response.status_code}"}
+            return {
+                "success": False,
+                "error": f"Error en la solicitud: Código de estado {response.status_code}",
+            }
     except requests.exceptions.RequestException as e:
         return {"success": False, "error": f"Error en la solicitud: {e}"}
+
+
 def logout2(request):
     # Eliminar todas las variables de sesión relacionadas con el usuario
     request.session.clear()
-    return redirect('login')
-def auditar_modulo_compras( request,action ,functionName, observation):
-    url = 'https://security-module-utn.azurewebsites.net/api/audit'
-    login_result = request.session.get('login_result', None)
-    token =login_result.get("data", {}).get("token")
-    username= login_result.get("data", {}).get("username")
+    return redirect("login")
+
+
+def auditar_modulo_compras(request, action, functionName, observation):
+    url = "https://security-module-utn.azurewebsites.net/api/audit"
+    login_result = request.session.get("login_result", None)
+    token = login_result.get("data", {}).get("token")
+    username = login_result.get("data", {}).get("username")
     description = f"{action} - Usuario: {username}"
-    ip_address =  request.META.get("REMOTE_ADDR", None)
-    headers = {
-        'Authorization': f"Bearer {token}",
-        'Content-Type': 'application/json'
-    }
+    ip_address = request.META.get("REMOTE_ADDR", None)
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
     data = {
-        'action': action,
-        'description': description,
-        'ip': ip_address,
-        'functionName': functionName,
-        'observation': observation
+        "action": action,
+        "description": description,
+        "ip": ip_address,
+        "functionName": functionName,
+        "observation": observation,
     }
 
     try:
@@ -243,14 +256,18 @@ def auditar_modulo_compras( request,action ,functionName, observation):
         if response.status_code == 200 or response.status_code == 201:
             result = response.json()
             print(data)
-            print('Datos de auditoría guardados correctamente:', result)
+            print("Datos de auditoría guardados correctamente:", result)
             return {"success": True, "data": result}
         else:
             print(f"Error en la solicitud: Código de estado {response.status_code}")
-            return {"success": False, "error": f"Error en la solicitud: Código de estado {response.status_code}"}
+            return {
+                "success": False,
+                "error": f"Error en la solicitud: Código de estado {response.status_code}",
+            }
     except requests.exceptions.RequestException as e:
         print(f"Error en la solicitud: {e}")
         return {"success": False, "error": f"Error en la solicitud: {e}"}
+
 
 def login_view(request):
     if request.method == "POST":
@@ -402,12 +419,13 @@ def vista_factura(request):
     return render(request, "detalle_factura.html", context)
 
 
-
 import requests
 import json
 from io import StringIO
+
 # Variable global para almacenar la lista de productos
 products_data = []
+
 
 def load_products():
     global products_data
@@ -519,7 +537,7 @@ def consultar_facturas(request):
         action = "Consultar Facturas"
         function_name = "PRC-INVOICE-READ"  # Ajustar según sea necesario
         observation = ""
-        auditar_modulo_compras(request,action,function_name,observation)
+        auditar_modulo_compras(request, action, function_name, observation)
         return render(
             request,
             "invoice_read.html",
@@ -553,7 +571,7 @@ def listarDetalleFactura(request, factura_id):
         action = "Consultar detalle de facturas"
         function_name = "PRC-INVOICE-READ"  # Ajustar según sea necesario
         observation = ""
-        auditar_modulo_compras(request,action,function_name,observation)
+        auditar_modulo_compras(request, action, function_name, observation)
         # Crear un diccionario con la información de la factura
         info_factura = {
             "invo_id": factura.invo_id,
@@ -877,13 +895,16 @@ from .models import Providers
 from django.templatetags.static import static
 from reportlab.lib.colors import orange
 
+
 def split_text(text, max_length):
-    return [text[i:i+max_length] for i in range(0, len(text), max_length)]
+    return [text[i : i + max_length] for i in range(0, len(text), max_length)]
+
 
 class PDFWithCode128(SimpleDocTemplate):
     def __init__(self, buffer, **kwargs):
         super().__init__(buffer, **kwargs)
         self.styles = getSampleStyleSheet()
+
 
 def reporte_proveedores(request):
     # Obtén los datos de la base de datos (supongamos que tienes un modelo llamado Providers)
@@ -897,7 +918,14 @@ def reporte_proveedores(request):
     margen_derecho = 35
 
     # Crear el objeto PDF usando ReportLab con ajuste de margen izquierdo y derecho
-    pdf = PDFWithCode128(buffer, pagesize=letter, rightMargin=margen_derecho, leftMargin=margen_izquierdo, topMargin=72, bottomMargin=18)
+    pdf = PDFWithCode128(
+        buffer,
+        pagesize=letter,
+        rightMargin=margen_derecho,
+        leftMargin=margen_izquierdo,
+        topMargin=72,
+        bottomMargin=18,
+    )
 
     # Configurar el estilo del documento
     styles = getSampleStyleSheet()
@@ -905,20 +933,25 @@ def reporte_proveedores(request):
     # Agregar contenido al PDF
     contenido = []
 
-    imagen_fondo = request.build_absolute_uri(static('images/f.jpg'))
+    imagen_fondo = request.build_absolute_uri(static("images/f.jpg"))
 
     # Agregar la imagen como fondo en cada página
     def draw_background(canvas, doc):
         canvas.saveState()
-        canvas.drawImage(imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1])
+        canvas.drawImage(
+            imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1]
+        )
         canvas.restoreState()
 
         # Texto "Nombre de la Empresa" en el centro de la hoja
-    nombre_empresa_texto = "Modulo de compras"  # Reemplaza con el nombre real de tu empresa
+
+    nombre_empresa_texto = (
+        "Modulo de compras"  # Reemplaza con el nombre real de tu empresa
+    )
     nombre_empresa_style = ParagraphStyle(
-        'NombreEmpresaStyle',
-        parent=styles['Normal'],
-        fontName='Helvetica',  # Ajusta según la fuente "Poppins-Bold"
+        "NombreEmpresaStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica",  # Ajusta según la fuente "Poppins-Bold"
         fontSize=18,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=0,  # 0 representa la alineación a la izquierda
         textColor=orange,  # Color del texto (naranja en este caso)
@@ -931,9 +964,9 @@ def reporte_proveedores(request):
 
     impreso_texto = "Impreso por administrador"
     impreso_style = ParagraphStyle(
-        'ImpresoStyle',
-        parent=styles['Normal'],
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "ImpresoStyle",
+        parent=styles["Normal"],
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=0,  # 0 representa la alineación a la izquierda
     )
@@ -941,16 +974,16 @@ def reporte_proveedores(request):
     contenido.append(Paragraph(impreso_texto, impreso_style))
 
     # Configura el idioma para obtener la fecha en español
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
 
     # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
-    fecha = datetime.now().strftime('%d de %B de %Y')
-    hora = datetime.now().strftime('%I:%M %p')
+    fecha = datetime.now().strftime("%d de %B de %Y")
+    hora = datetime.now().strftime("%I:%M %p")
     fecha_hora_texto = f"{fecha}, {hora}"
     fecha_hora_style = ParagraphStyle(
-        'FechaHoraStyle',
-        parent=styles['Normal'],
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "FechaHoraStyle",
+        parent=styles["Normal"],
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=0,  # 0 representa la alineación a la izquierda
     )
@@ -958,59 +991,78 @@ def reporte_proveedores(request):
     contenido.append(Paragraph(fecha_hora_texto, fecha_hora_style))
 
     # Número de factura en la parte superior izquierda
-    numero_factura = obtener_numero_factura()  # Implementa la lógica para obtener el número de factura
+    numero_factura = (
+        obtener_numero_factura()
+    )  # Implementa la lógica para obtener el número de factura
     numero_factura_style = ParagraphStyle(
-        'NumeroFacturaStyle',
-        parent=styles['BodyText'],
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "NumeroFacturaStyle",
+        parent=styles["BodyText"],
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=0,  # 0 representa la alineación a la izquierda
         spaceBefore=5,  # Espacio antes del párrafo
     )
-    contenido.append(Paragraph(f"<b>Número de factura:</b> {numero_factura}", numero_factura_style))
+    contenido.append(
+        Paragraph(f"<b>Número de factura:</b> {numero_factura}", numero_factura_style)
+    )
 
     # Texto "Reporte de Proveedores" en el centro
     reporte_texto = "Reporte de Proveedores"
     reporte_style = ParagraphStyle(
-        'ReporteStyle',
-        parent=styles['Heading1'],  # Puedes ajustar el estilo según tu preferencia
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "ReporteStyle",
+        parent=styles["Heading1"],  # Puedes ajustar el estilo según tu preferencia
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=16,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=1,  # 1 representa la alineación al centro
         spaceBefore=20,  # Espacio antes del párrafo
         spaceAfter=20,  # Espacio después del párrafo
         textColor=orange,  # Puedes ajustar el color del texto
-        BOLD = True,
+        BOLD=True,
     )
     contenido.append(Paragraph(reporte_texto, reporte_style))
 
     # Datos del cliente en una tabla adaptable
-    datos_cliente = [["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]]
+    datos_cliente = [
+        ["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]
+    ]
     max_length = 20  # Máximo de caracteres por línea
 
     for proveedor in proveedores:
-        datos_cliente.append([
-            "\n".join(split_text(proveedor.prov_name, max_length)),
-            "\n".join(split_text(proveedor.prov_dni, max_length)),
-            "\n".join(split_text(proveedor.prov_phone, max_length)),
-            "\n".join(split_text(proveedor.prov_email, max_length)),
-            "\n".join(split_text(proveedor.prov_city, max_length)),
-            "\n".join(split_text("ACTIVO" if proveedor.prov_status else "INACTIVO", max_length)),
-            proveedor.get_prov_type_display(),
-            "\n".join(split_text(proveedor.prov_address, max_length)),
-            ])
+        datos_cliente.append(
+            [
+                "\n".join(split_text(proveedor.prov_name, max_length)),
+                "\n".join(split_text(proveedor.prov_dni, max_length)),
+                "\n".join(split_text(proveedor.prov_phone, max_length)),
+                "\n".join(split_text(proveedor.prov_email, max_length)),
+                "\n".join(split_text(proveedor.prov_city, max_length)),
+                "\n".join(
+                    split_text(
+                        "ACTIVO" if proveedor.prov_status else "INACTIVO", max_length
+                    )
+                ),
+                proveedor.get_prov_type_display(),
+                "\n".join(split_text(proveedor.prov_address, max_length)),
+            ]
+        )
 
     # Estilo de la tabla de datos del cliente con letra más pequeña
-    style_datos_cliente = TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.orange),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Centrar verticalmente
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 7),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),  # Ajuste de línea automático
-    ])
+    style_datos_cliente = TableStyle(
+        [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.orange),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),  # Centrar verticalmente
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 5),
+            (
+                "BACKGROUND",
+                (0, 1),
+                (-1, -1),
+                colors.beige,
+            ),  # Ajuste de línea automático
+        ]
+    )
 
     tabla_cliente = Table(datos_cliente, style=style_datos_cliente)
     contenido.append(Spacer(1, 20))
@@ -1021,32 +1073,34 @@ def reporte_proveedores(request):
     total_creditos = proveedores.filter(prov_type=1).count()
     total_contado = proveedores.filter(prov_type=2).count()
 
-        # Estilo para los totales de proveedores
+    # Estilo para los totales de proveedores
     total_proveedores_style = ParagraphStyle(
-        'TotalProveedoresStyle',
-        parent=styles['Heading2'],
-        fontName='Courier-Bold',  # Ajusta el tipo de letra según tu preferencia
+        "TotalProveedoresStyle",
+        parent=styles["Heading2"],
+        fontName="Courier-Bold",  # Ajusta el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         spaceBefore=20,  # Espacio antes del párrafo
-        spaceAfter=1,   # Espacio después del párrafo (ajusta según sea necesario)
+        spaceAfter=1,  # Espacio después del párrafo (ajusta según sea necesario)
         textColor=colors.black,  # Ajusta el color del texto a negro
         alignment=2,  # Alineación a la derecha
     )
 
     # Párrafo para el total de proveedores
     total_proveedores_texto = f"Total de proveedores: {total_proveedores}"
-    total_proveedores_paragraph = Paragraph(total_proveedores_texto, total_proveedores_style)
+    total_proveedores_paragraph = Paragraph(
+        total_proveedores_texto, total_proveedores_style
+    )
     contenido.append(Spacer(1, 1))  # Ajusta el espacio según sea necesario
     contenido.append(total_proveedores_paragraph)
 
     # Estilo para los totales de créditos de proveedores
     total_creditos_style = ParagraphStyle(
-        'TotalCreditosStyle',
-        parent=styles['Heading2'],
-        fontName='Courier-Bold',  # Ajusta el tipo de letra según tu preferencia
+        "TotalCreditosStyle",
+        parent=styles["Heading2"],
+        fontName="Courier-Bold",  # Ajusta el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         spaceBefore=1,  # Espacio antes del párrafo
-        spaceAfter=1,   # Espacio después del párrafo (ajusta según sea necesario)
+        spaceAfter=1,  # Espacio después del párrafo (ajusta según sea necesario)
         textColor=colors.black,  # Ajusta el color del texto a negro
         alignment=2,  # Alineación a la derecha
     )
@@ -1059,12 +1113,12 @@ def reporte_proveedores(request):
 
     # Estilo para los totales de proveedores contado
     total_contado_style = ParagraphStyle(
-        'TotalContadoStyle',
-        parent=styles['Heading2'],
-        fontName='Courier-Bold',  # Ajusta el tipo de letra según tu preferencia
+        "TotalContadoStyle",
+        parent=styles["Heading2"],
+        fontName="Courier-Bold",  # Ajusta el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         spaceBefore=1,  # Espacio antes del párrafo
-        spaceAfter=1,   # Espacio después del párrafo (ajusta según sea necesario)
+        spaceAfter=1,  # Espacio después del párrafo (ajusta según sea necesario)
         textColor=colors.black,  # Ajusta el color del texto a negro
         alignment=2,  # Alineación a la derecha
     )
@@ -1078,9 +1132,9 @@ def reporte_proveedores(request):
     # Agregar una línea de firma
     firma_texto = "Firma: ____________________________"
     firma_style = ParagraphStyle(
-        'FirmaStyle',
-        parent=styles['Italic'],
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "FirmaStyle",
+        parent=styles["Italic"],
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=1,  # Alineación al centro
         spaceBefore=10,  # Espacio antes del párrafo
@@ -1093,16 +1147,18 @@ def reporte_proveedores(request):
 
     # Estilo para la nota en la parte inferior central
     nota_style = ParagraphStyle(
-        'NotaStyle',
-        parent=styles['Italic'],
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "NotaStyle",
+        parent=styles["Italic"],
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=1,  # Alineación al centro
         spaceBefore=5,  # Espacio antes del párrafo
     )
 
     # Párrafo para la nota
-    nota_texto = "<i>Nota: Los proveedores existentes son aprobados por el administrador.</i>"
+    nota_texto = (
+        "<i>Nota: Los proveedores existentes son aprobados por el administrador.</i>"
+    )
     contenido.append(Spacer(1, 5))
     contenido.append(Paragraph(nota_texto, nota_style))
 
@@ -1123,10 +1179,14 @@ def reporte_proveedores(request):
 from .models import NumeroFactura
 from django.db import transaction
 
+
 def obtener_numero_factura():
     with transaction.atomic():
         # Utilizamos select_for_update para evitar problemas de concurrencia
-        numero_factura_obj, creado = NumeroFactura.objects.select_for_update().get_or_create(id=1)
+        (
+            numero_factura_obj,
+            creado,
+        ) = NumeroFactura.objects.select_for_update().get_or_create(id=1)
 
         if not creado:
             # Si no es la primera vez, incrementar el número de factura en 1
@@ -1145,10 +1205,13 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 from datetime import datetime, timedelta
 
+
 def generar_pdf(request, invoice_id):
     # Obtén los productos de la API
     try:
-        response = requests.get("https://inventario-phue.onrender.com/inventario/products/")
+        response = requests.get(
+            "https://inventario-phue.onrender.com/inventario/products/"
+        )
         products = response.json() if response.status_code == 200 else []
     except Exception as e:
         print(f"Error al obtener productos desde la API: {e}")
@@ -1160,32 +1223,33 @@ def generar_pdf(request, invoice_id):
     except (Invoice.DoesNotExist, InvoiceDetail.DoesNotExist) as e:
         return HttpResponse("Error: La factura o los detalles no existen.")
 
-
-       # Configuración del documento PDF
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="factura_{invoice_id}.pdf"'
+    # Configuración del documento PDF
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="factura_{invoice_id}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter)
-        # Configurar el estilo del documento
+    # Configurar el estilo del documento
     styles = getSampleStyleSheet()
 
     # Contenido del PDF
     story = []
     subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles, products)
 
-    imagen_fondo = request.build_absolute_uri(static('images/f.jpg'))
+    imagen_fondo = request.build_absolute_uri(static("images/f.jpg"))
 
     # Agregar la imagen como fondo en cada página
     def draw_background(canvas, doc):
         canvas.saveState()
-        canvas.drawImage(imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1])
+        canvas.drawImage(
+            imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1]
+        )
         canvas.restoreState()
 
     # Estilo personalizado para el título del documento
     titulo_documento_style = ParagraphStyle(
-        'TituloDocumentoStyle',
-        parent=styles['Heading1'],
-        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        "TituloDocumentoStyle",
+        parent=styles["Heading1"],
+        fontName="Courier",  # Ajusta según la fuente "Poppins-Bold"
         fontSize=20,  # Ajusta el tamaño de la fuente según tu preferencia
         textColor=orange,  # Color del texto (naranja en este caso)
         spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
@@ -1195,9 +1259,9 @@ def generar_pdf(request, invoice_id):
 
     # Estilo personalizado para el subtítulo del documento
     subtitulo_documento_style = ParagraphStyle(
-        'SubtituloDocumentoStyle',
-        parent=styles['BodyText'],
-        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        "SubtituloDocumentoStyle",
+        parent=styles["BodyText"],
+        fontName="Courier",  # Ajusta según la fuente "Poppins-Bold"
         fontSize=16,  # Ajusta el tamaño de la fuente según tu preferencia
         textColor=orange,  # Color del texto (naranja en este caso)
         spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
@@ -1207,9 +1271,9 @@ def generar_pdf(request, invoice_id):
 
     # Estilo personalizado para el texto del cuerpo del documento
     cuerpo_documento_style = ParagraphStyle(
-        'CuerpoDocumentoStyle',
-        parent=styles['BodyText'],
-        fontName='Courier',  # Ajusta según la fuente "Poppins-Regular"
+        "CuerpoDocumentoStyle",
+        parent=styles["BodyText"],
+        fontName="Courier",  # Ajusta según la fuente "Poppins-Regular"
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         textColor=colors.black,  # Color del texto (ajusta según tu preferencia)
         spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
@@ -1223,16 +1287,16 @@ def generar_pdf(request, invoice_id):
     story.append(Paragraph("Av. 17 de julio, FICA", cuerpo_documento_style))
 
     # Configura el idioma para obtener la fecha en español
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
 
     # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
-    fecha = datetime.now().strftime('%d de %B de %Y')
-    hora = datetime.now().strftime('%I:%M %p')
+    fecha = datetime.now().strftime("%d de %B de %Y")
+    hora = datetime.now().strftime("%I:%M %p")
     fecha_hora_texto = f"Fecha de impresión: {fecha}, {hora}"
     fecha_hora_style = ParagraphStyle(
-        'FechaHoraStyle',
-        parent=styles['BodyText'],
-        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        "FechaHoraStyle",
+        parent=styles["BodyText"],
+        fontName="Courier",  # Puedes ajustar el tipo de letra según tu preferencia
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         alignment=0,  # 0 representa la alineación a la izquierda
         spaceBefore=-12,
@@ -1240,19 +1304,33 @@ def generar_pdf(request, invoice_id):
     story.append(Spacer(1, 5))  # Separación pequeña
     story.append(Paragraph(fecha_hora_texto, fecha_hora_style))
 
-
     # Información del cliente
     story.append(Spacer(1, 12))  # Espacio en blanco
     story.append(Paragraph("Información del Cliente", subtitulo_documento_style))
-    story.append(Paragraph(f"Nombre del Cliente: {factura.invo_prov_id.prov_name}", cuerpo_documento_style))
-    story.append(Paragraph(f"Dirección del Cliente: {factura.invo_prov_id.prov_address}", cuerpo_documento_style))
-    story.append(Paragraph(f"Número de Teléfono: {factura.invo_prov_id.prov_phone}", cuerpo_documento_style))
+    story.append(
+        Paragraph(
+            f"Nombre del Cliente: {factura.invo_prov_id.prov_name}",
+            cuerpo_documento_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            f"Dirección del Cliente: {factura.invo_prov_id.prov_address}",
+            cuerpo_documento_style,
+        )
+    )
+    story.append(
+        Paragraph(
+            f"Número de Teléfono: {factura.invo_prov_id.prov_phone}",
+            cuerpo_documento_style,
+        )
+    )
 
-        # Estilo personalizado para los detalles adicionales de la factura
+    # Estilo personalizado para los detalles adicionales de la factura
     detalles_factura_style = ParagraphStyle(
-        'DetallesFacturaStyle',
-        parent=styles['BodyText'],
-        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        "DetallesFacturaStyle",
+        parent=styles["BodyText"],
+        fontName="Courier",  # Ajusta según la fuente "Poppins-Bold"
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         textColor=orange,  # Color del texto (naranja en este caso)
         spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
@@ -1260,11 +1338,11 @@ def generar_pdf(request, invoice_id):
         alignment=2,
     )
 
-            # Estilo personalizado para los detalles adicionales de la factura
+    # Estilo personalizado para los detalles adicionales de la factura
     tipo_style = ParagraphStyle(
-        'TipoStyle',
-        parent=styles['BodyText'],
-        fontName='Courier',  # Ajusta según la fuente "Poppins-Regular"
+        "TipoStyle",
+        parent=styles["BodyText"],
+        fontName="Courier",  # Ajusta según la fuente "Poppins-Regular"
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         textColor=colors.black,  # Color del texto (ajusta según tu preferencia)
         alignment=2,
@@ -1273,16 +1351,25 @@ def generar_pdf(request, invoice_id):
     # Detalles adicionales de la factura
     story.append(Spacer(1, -100))  # Espacio en blanco
     story.append(Paragraph("Detalles Adicionales", detalles_factura_style))
-    story.append(Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}",  tipo_style))
+    story.append(
+        Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}", tipo_style)
+    )
 
-    if factura.invo_pay_type.pay_name == 'Contado':
-        story.append(Paragraph(f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}",  tipo_style))
+    if factura.invo_pay_type.pay_name == "Contado":
+        story.append(
+            Paragraph(
+                f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}",
+                tipo_style,
+            )
+        )
 
     # Información de la compra (tabla)
     story.append(Spacer(1, 50))  # Espacio en blanco
     story.append(Paragraph("Información de la Compra", subtitulo_documento_style))
 
-    data = [['SL', 'Descripción del Producto', 'Precio', 'Cantidad', 'Impuesto', 'Total']]
+    data = [
+        ["SL", "Descripción del Producto", "Precio", "Cantidad", "Impuesto", "Total"]
+    ]
 
     sl = 1
     for detalle in detalles:
@@ -1291,18 +1378,31 @@ def generar_pdf(request, invoice_id):
         prod_iva = get_producto_iva(products, detalle.prod_id)
         precio_total = detalle.quantity_invo_det * prod_pvp
 
-        data.append([sl, prod_name, f"${prod_pvp:.2f}", detalle.quantity_invo_det, f"${prod_iva:.2f}", f"${precio_total:.2f}"])
+        data.append(
+            [
+                sl,
+                prod_name,
+                f"${prod_pvp:.2f}",
+                detalle.quantity_invo_det,
+                f"${prod_iva:.2f}",
+                f"${precio_total:.2f}",
+            ]
+        )
         sl += 1
 
     # Estilo de la tabla
-    style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.orange),
-                        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Courier'),
-                        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                        ('LEFTPADDING', (0, 0), (-1, -1), 6),  # Ajusta el relleno izquierdo
-                        ('RIGHTPADDING', (0, 0), (-1, -1), 6),])
+    style = TableStyle(
+        [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.orange),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTNAME", (0, 0), (-1, 0), "Courier"),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),  # Ajusta el relleno izquierdo
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+        ]
+    )
 
     # Construir la tabla y aplicar el estilo
     compra_table = Table(data)
@@ -1310,11 +1410,11 @@ def generar_pdf(request, invoice_id):
 
     story.append(compra_table)
 
-        # Estilo personalizado para los detalles adicionales de la factura
+    # Estilo personalizado para los detalles adicionales de la factura
     totales_factura_style = ParagraphStyle(
-        'DetallesFacturaStyle',
-        parent=styles['Heading2'],
-        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        "DetallesFacturaStyle",
+        parent=styles["Heading2"],
+        fontName="Courier",  # Ajusta según la fuente "Poppins-Bold"
         fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
         textColor=orange,  # Color del texto (naranja en este caso)
         spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
@@ -1327,39 +1427,44 @@ def generar_pdf(request, invoice_id):
 
     # Ajustar el estilo para justificar a la derecha
     subtotal_sin_impuestos_style = ParagraphStyle(
-        'SubtotalSinImpuestosStyle',
-        parent=getSampleStyleSheet()['BodyText'],
-        spaceAfter=8, 
+        "SubtotalSinImpuestosStyle",
+        parent=getSampleStyleSheet()["BodyText"],
+        spaceAfter=8,
         borderPadding=(5, 5, 5, 5),
         borderColor=colors.orange,
         borderWidth=1,
         alignment=2,  # Alinea a la derecha
         leftIndent=300,
-        fontName='Courier', 
+        fontName="Courier",
     )
     iva12_style = ParagraphStyle(
-        'IVA12Style',
+        "IVA12Style",
         borderPadding=(5, 5, 5, 5),
-        spaceAfter=8, 
+        spaceAfter=8,
         borderColor=colors.orange,
         borderWidth=1,
         alignment=2,  # Alinea a la derecha
         leftIndent=300,
-        fontName='Courier', 
+        fontName="Courier",
     )
     valor_total_style = ParagraphStyle(
-        'ValorTotalStyle',
-        parent=getSampleStyleSheet()['BodyText'],
-        spaceAfter=8, 
+        "ValorTotalStyle",
+        parent=getSampleStyleSheet()["BodyText"],
+        spaceAfter=8,
         borderPadding=(5, 5, 5, 5),
         borderColor=colors.orange,
         borderWidth=1,
         alignment=2,  # Alinea a la derecha
         leftIndent=300,
-        fontName='Courier', 
+        fontName="Courier",
     )
 
-    story.append(Paragraph(f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}", subtotal_sin_impuestos_style))
+    story.append(
+        Paragraph(
+            f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}",
+            subtotal_sin_impuestos_style,
+        )
+    )
     story.append(Paragraph(f"IVA 12%: {iva12:.2f}", iva12_style))
     story.append(Paragraph(f"Valor Total: {valor_total:.2f}", valor_total_style))
 
@@ -1367,13 +1472,23 @@ def generar_pdf(request, invoice_id):
     fecha_expiracion = factura.expedition_date or None
 
     # Convertir la cadena 'fecha_hora_texto' a un objeto datetime
-    fecha_hora_texto_datetime = datetime.strptime(fecha_hora_texto, "Fecha de impresión: %d de %B de %Y, %I:%M %p")
+    fecha_hora_texto_datetime = datetime.strptime(
+        fecha_hora_texto, "Fecha de impresión: %d de %B de %Y, %I:%M %p"
+    )
 
     # Convertir la fecha de expiración a datetime si no es None
-    fecha_expiracion_datetime = datetime.combine(fecha_expiracion, datetime.min.time()) if fecha_expiracion else None
+    fecha_expiracion_datetime = (
+        datetime.combine(fecha_expiracion, datetime.min.time())
+        if fecha_expiracion
+        else None
+    )
 
     # Calcular la diferencia en días entre la fecha de expiración y la fecha de impresión
-    diferencia_dias = (fecha_expiracion_datetime - fecha_hora_texto_datetime).days if fecha_expiracion_datetime else None
+    diferencia_dias = (
+        (fecha_expiracion_datetime - fecha_hora_texto_datetime).days
+        if fecha_expiracion_datetime
+        else None
+    )
 
     # Mensaje según la diferencia de días
     if diferencia_dias is not None and diferencia_dias > 0:
@@ -1399,7 +1514,9 @@ def calcular_totales(detalles, products):
 
     for detalle in detalles:
         # Calcula el precio total directamente desde el detalle sin acceder a atributos no existentes
-        precio_total = detalle.quantity_invo_det * get_producto_precio(products, detalle.prod_id)
+        precio_total = detalle.quantity_invo_det * get_producto_precio(
+            products, detalle.prod_id
+        )
 
         graba_iva = get_producto_iva(products, detalle.prod_id)
 
