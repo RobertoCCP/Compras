@@ -1,5 +1,6 @@
 from io import StringIO
-from turtle import color
+import locale
+from turtle import color, left
 from urllib import request
 from django.shortcuts import render, redirect, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -398,7 +399,16 @@ def vista_factura(request):
     return render(request, "detalle_factura.html", context)
 
 
+
+import requests
+import json
+from io import StringIO
+# Variable global para almacenar la lista de productos
+products_data = []
+
 def load_products():
+    global products_data
+
     url = "https://inventario-phue.onrender.com/inventario/products/"
 
     try:
@@ -407,8 +417,8 @@ def load_products():
 
         if response.status_code == 200:
             response_buffer = StringIO(response.text)
-            products = json.load(response_buffer)
-            return products
+            products_data = json.load(response_buffer)
+            return products_data
         else:
             return f"Error en la solicitud: Código de estado {response.status_code}"
     except requests.exceptions.RequestException as e:
@@ -858,125 +868,243 @@ from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from datetime import datetime
-from .models import (
-    Personal,
-)  # Asegúrate de importar el modelo Personal desde tu aplicación
+from .models import Providers
+from django.templatetags.static import static
+from reportlab.lib.colors import orange
 
+def split_text(text, max_length):
+    return [text[i:i+max_length] for i in range(0, len(text), max_length)]
+
+class PDFWithCode128(SimpleDocTemplate):
+    def __init__(self, buffer, **kwargs):
+        super().__init__(buffer, **kwargs)
+        self.styles = getSampleStyleSheet()
 
 def reporte_proveedores(request):
-    # Obtén los datos de la base de datos (supongamos que tienes un modelo llamado Proveedor)
+    # Obtén los datos de la base de datos (supongamos que tienes un modelo llamado Providers)
     proveedores = Providers.objects.all()
 
-    # Crea el objeto BytesIO para almacenar el PDF
+    # Crear el objeto BytesIO para almacenar el PDF
     buffer = BytesIO()
 
-    # Crea el objeto PDF usando reportlab
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=letter,
-        rightMargin=72,
-        leftMargin=72,
-        topMargin=72,
-        bottomMargin=18,
-    )
+    # Establecer el margen izquierdo y derecho en 1 cm
+    margen_izquierdo = 35
+    margen_derecho = 35
 
-    # Configuración del estilo del documento
+    # Crear el objeto PDF usando ReportLab con ajuste de margen izquierdo y derecho
+    pdf = PDFWithCode128(buffer, pagesize=letter, rightMargin=margen_derecho, leftMargin=margen_izquierdo, topMargin=72, bottomMargin=18)
+
+    # Configurar el estilo del documento
     styles = getSampleStyleSheet()
-    style_heading = styles["Heading1"]
-    style_body = styles["BodyText"]
 
-    # Agrega contenido al PDF
+    # Agregar contenido al PDF
     contenido = []
 
-    # Agrega el encabezado con el título y la fecha
-    titulo = "Reporte de Proveedores"
-    fecha_actual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    contenido.append(Paragraph(titulo, style_heading))
-    contenido.append(Paragraph(f"Fecha de impresión: {fecha_actual}", style_body))
+    imagen_fondo = request.build_absolute_uri(static('images/f.jpg'))
 
-    # Datos de la empresa y usuario que imprime (basados en el nombre de usuario)
-    # Asegúrate de ajustar los nombres de los campos según tu modelo de Personal
-    contenido.append(Paragraph(f"Empresa: COMPRAS", style_body))
+    # Agregar la imagen como fondo en cada página
+    def draw_background(canvas, doc):
+        canvas.saveState()
+        canvas.drawImage(imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1])
+        canvas.restoreState()
 
-    # Agrega espacio en blanco
-    contenido.append(Spacer(1, 12))
+        # Texto "Nombre de la Empresa" en el centro de la hoja
+    nombre_empresa_texto = "Modulo de compras"  # Reemplaza con el nombre real de tu empresa
+    nombre_empresa_style = ParagraphStyle(
+        'NombreEmpresaStyle',
+        parent=styles['Normal'],
+        fontName='Helvetica',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=18,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=0,  # 0 representa la alineación a la izquierda
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        spaceBefore=6,  # Espacio antes del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita # 1 representa la alineación al centro
+    )
+    contenido.append(Spacer(1, 10))
+    contenido.append(Paragraph(nombre_empresa_texto, nombre_empresa_style))
 
-    # Crea una lista de datos para la tabla
-    data = [
-        ["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]
-    ]
+    impreso_texto = "Impreso por administrador"
+    impreso_style = ParagraphStyle(
+        'ImpresoStyle',
+        parent=styles['Normal'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=0,  # 0 representa la alineación a la izquierda
+    )
+    contenido.append(Spacer(1, 10))
+    contenido.append(Paragraph(impreso_texto, impreso_style))
+
+    # Configura el idioma para obtener la fecha en español
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
+    # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
+    fecha = datetime.now().strftime('%d de %B de %Y')
+    hora = datetime.now().strftime('%I:%M %p')
+    fecha_hora_texto = f"{fecha}, {hora}"
+    fecha_hora_style = ParagraphStyle(
+        'FechaHoraStyle',
+        parent=styles['Normal'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=0,  # 0 representa la alineación a la izquierda
+    )
+    contenido.append(Spacer(1, 5))  # Separación pequeña
+    contenido.append(Paragraph(fecha_hora_texto, fecha_hora_style))
+
+    # Número de factura en la parte superior izquierda
+    numero_factura = obtener_numero_factura()  # Implementa la lógica para obtener el número de factura
+    numero_factura_style = ParagraphStyle(
+        'NumeroFacturaStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=0,  # 0 representa la alineación a la izquierda
+        spaceBefore=5,  # Espacio antes del párrafo
+    )
+    contenido.append(Paragraph(f"<b>Número de factura:</b> {numero_factura}", numero_factura_style))
+
+    # Texto "Reporte de Proveedores" en el centro
+    reporte_texto = "Reporte de Proveedores"
+    reporte_style = ParagraphStyle(
+        'ReporteStyle',
+        parent=styles['Heading1'],  # Puedes ajustar el estilo según tu preferencia
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=16,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=1,  # 1 representa la alineación al centro
+        spaceBefore=20,  # Espacio antes del párrafo
+        spaceAfter=20,  # Espacio después del párrafo
+        textColor=orange,  # Puedes ajustar el color del texto
+        BOLD = True,
+    )
+    contenido.append(Paragraph(reporte_texto, reporte_style))
+
+    # Datos del cliente en una tabla adaptable
+    datos_cliente = [["Nombre", "DNI", "Teléfono", "Email", "Ciudad", "Estado", "Tipo", "Dirección"]]
+    max_length = 20  # Máximo de caracteres por línea
 
     for proveedor in proveedores:
-        data.append(
-            [
-                proveedor.prov_name,
-                proveedor.prov_dni,
-                proveedor.prov_phone,
-                proveedor.prov_email,
-                proveedor.prov_city,
-                proveedor.prov_status,
-                proveedor.get_prov_type_display(),
-                proveedor.prov_address,
-            ]
-        )
+        datos_cliente.append([
+            "\n".join(split_text(proveedor.prov_name, max_length)),
+            "\n".join(split_text(proveedor.prov_dni, max_length)),
+            "\n".join(split_text(proveedor.prov_phone, max_length)),
+            "\n".join(split_text(proveedor.prov_email, max_length)),
+            "\n".join(split_text(proveedor.prov_city, max_length)),
+            "\n".join(split_text("ACTIVO" if proveedor.prov_status else "INACTIVO", max_length)),
+            proveedor.get_prov_type_display(),
+            "\n".join(split_text(proveedor.prov_address, max_length)),
+            ])
 
-        # Crea la tabla y aplica estilos
-        tabla = Table(data)
-        tabla.setStyle(
-            TableStyle(
-                [
-                    (
-                        "BACKGROUND",
-                        (0, 0),
-                        (-1, 0),
-                        colors.orange,
-                    ),  # Color de fondo para la fila de encabezado
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    (
-                        "BOTTOMPADDING",
-                        (0, 0),
-                        (-1, 0),
-                        6,
-                    ),  # Reducir el espacio entre el texto y la celda superior
-                    ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-                    ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                    (
-                        "FONTSIZE",
-                        (0, 0),
-                        (-1, -1),
-                        7,
-                    ),  # Establecer el tamaño de la letra en 8 puntos
-                    (
-                        "LEFTPADDING",
-                        (0, 0),
-                        (-1, -1),
-                        8,
-                    ),  # Añadir un margen izquierdo de 12 puntos
-                    (
-                        "RIGHTPADDING",
-                        (0, 0),
-                        (-1, -1),
-                        8,
-                    ),  # Añadir un margen derecho de 12 puntos
-                ]
-            )
-        )
+    # Estilo de la tabla de datos del cliente con letra más pequeña
+    style_datos_cliente = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.orange),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),  # Centrar verticalmente
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 5),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),  # Ajuste de línea automático
+    ])
 
-    # Agrega la tabla al contenido
-    contenido.append(tabla)
+    tabla_cliente = Table(datos_cliente, style=style_datos_cliente)
+    contenido.append(Spacer(1, 20))
+    contenido.append(tabla_cliente)
 
-    # Agrega espacio en blanco
-    contenido.append(Spacer(1, 12))
+    # Totales en la parte inferior derecha
+    total_proveedores = len(proveedores)
+    total_creditos = proveedores.filter(prov_type=1).count()
+    total_contado = proveedores.filter(prov_type=2).count()
 
-    # Agrega espacio para firmas
-    contenido.append(Paragraph("Firmas:", style_body))
+        # Estilo para los totales de proveedores
+    total_proveedores_style = ParagraphStyle(
+        'TotalProveedoresStyle',
+        parent=styles['Heading2'],
+        fontName='Courier-Bold',  # Ajusta el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        spaceBefore=20,  # Espacio antes del párrafo
+        spaceAfter=1,   # Espacio después del párrafo (ajusta según sea necesario)
+        textColor=colors.black,  # Ajusta el color del texto a negro
+        alignment=2,  # Alineación a la derecha
+    )
+
+    # Párrafo para el total de proveedores
+    total_proveedores_texto = f"Total de proveedores: {total_proveedores}"
+    total_proveedores_paragraph = Paragraph(total_proveedores_texto, total_proveedores_style)
+    contenido.append(Spacer(1, 1))  # Ajusta el espacio según sea necesario
+    contenido.append(total_proveedores_paragraph)
+
+    # Estilo para los totales de créditos de proveedores
+    total_creditos_style = ParagraphStyle(
+        'TotalCreditosStyle',
+        parent=styles['Heading2'],
+        fontName='Courier-Bold',  # Ajusta el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        spaceBefore=1,  # Espacio antes del párrafo
+        spaceAfter=1,   # Espacio después del párrafo (ajusta según sea necesario)
+        textColor=colors.black,  # Ajusta el color del texto a negro
+        alignment=2,  # Alineación a la derecha
+    )
+
+    # Párrafo para el total de créditos de proveedores
+    total_creditos_texto = f"Crédito de los proveedores: {total_creditos}"
+    total_creditos_paragraph = Paragraph(total_creditos_texto, total_creditos_style)
+    contenido.append(Spacer(1, 1))  # Ajusta el espacio según sea necesario
+    contenido.append(total_creditos_paragraph)
+
+    # Estilo para los totales de proveedores contado
+    total_contado_style = ParagraphStyle(
+        'TotalContadoStyle',
+        parent=styles['Heading2'],
+        fontName='Courier-Bold',  # Ajusta el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        spaceBefore=1,  # Espacio antes del párrafo
+        spaceAfter=1,   # Espacio después del párrafo (ajusta según sea necesario)
+        textColor=colors.black,  # Ajusta el color del texto a negro
+        alignment=2,  # Alineación a la derecha
+    )
+
+    # Párrafo para el total de proveedores contado
+    total_contado_texto = f"Contado de los proveedores: {total_contado}"
+    total_contado_paragraph = Paragraph(total_contado_texto, total_contado_style)
+    contenido.append(Spacer(1, 1))  # Ajusta el espacio según sea necesario
+    contenido.append(total_contado_paragraph)
+
+    # Agregar una línea de firma
+    firma_texto = "Firma: ____________________________"
+    firma_style = ParagraphStyle(
+        'FirmaStyle',
+        parent=styles['Italic'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=1,  # Alineación al centro
+        spaceBefore=10,  # Espacio antes del párrafo
+    )
+
+    firma_paragraph = Paragraph(firma_texto, firma_style)
+    contenido.append(firma_paragraph)
+
+    # ...
+
+    # Estilo para la nota en la parte inferior central
+    nota_style = ParagraphStyle(
+        'NotaStyle',
+        parent=styles['Italic'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=1,  # Alineación al centro
+        spaceBefore=5,  # Espacio antes del párrafo
+    )
+
+    # Párrafo para la nota
+    nota_texto = "<i>Nota: Los proveedores existentes son aprobados por el administrador.</i>"
+    contenido.append(Spacer(1, 5))
+    contenido.append(Paragraph(nota_texto, nota_style))
 
     # Construye el documento
-    doc.build(contenido)
+    pdf.build(contenido, onFirstPage=draw_background)
 
     # Establece el puntero del búfer al principio
     buffer.seek(0)
@@ -989,12 +1117,30 @@ def reporte_proveedores(request):
     return response
 
 
+from .models import NumeroFactura
+from django.db import transaction
+
+def obtener_numero_factura():
+    with transaction.atomic():
+        # Utilizamos select_for_update para evitar problemas de concurrencia
+        numero_factura_obj, creado = NumeroFactura.objects.select_for_update().get_or_create(id=1)
+
+        if not creado:
+            # Si no es la primera vez, incrementar el número de factura en 1
+            numero_factura_obj.numero += 1
+            numero_factura_obj.save()
+
+        # Devolver el número de factura actualizado
+        return numero_factura_obj.numero
+
+
 from django.shortcuts import render
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 from .models import Invoice, InvoiceDetail
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from datetime import datetime, timedelta
 
 def generar_pdf(request, invoice_id):
     # Obtén los productos de la API
@@ -1017,25 +1163,121 @@ def generar_pdf(request, invoice_id):
     response['Content-Disposition'] = f'attachment; filename="factura_{invoice_id}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=letter)
+        # Configurar el estilo del documento
+    styles = getSampleStyleSheet()
 
     # Contenido del PDF
     story = []
     subtotal_sin_impuestos, iva12, valor_total = calcular_totales(detalles, products)
-    # Encabezado
-    story.append(Paragraph("LOGO DE LA EMPRESA", getSampleStyleSheet()['Heading1']))
-    story.append(Paragraph("Nombre de la Empresa", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph("Dirección de la Empresa", getSampleStyleSheet()['BodyText']))
+
+    imagen_fondo = request.build_absolute_uri(static('images/f.jpg'))
+
+    # Agregar la imagen como fondo en cada página
+    def draw_background(canvas, doc):
+        canvas.saveState()
+        canvas.drawImage(imagen_fondo, 0, 0, width=doc.pagesize[0], height=doc.pagesize[1])
+        canvas.restoreState()
+
+    # Estilo personalizado para el título del documento
+    titulo_documento_style = ParagraphStyle(
+        'TituloDocumentoStyle',
+        parent=styles['Heading1'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=20,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=0,
+    )
+
+    # Estilo personalizado para el subtítulo del documento
+    subtitulo_documento_style = ParagraphStyle(
+        'SubtituloDocumentoStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=16,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=0,
+    )
+
+    # Estilo personalizado para el texto del cuerpo del documento
+    cuerpo_documento_style = ParagraphStyle(
+        'CuerpoDocumentoStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Regular"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=colors.black,  # Color del texto (ajusta según tu preferencia)
+        spaceAfter=12,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        spaceBefore=6,  # Espacio antes del párrafo (puedes ajustarlo según tu preferencia)
+        alignment=0,
+    )
+
+    # Ahora puedes usar estos estilos en tu código
+    story.append(Paragraph("LOGO DE LA EMPRESA", titulo_documento_style))
+    story.append(Paragraph("MÓDULO DE COMPRAS", subtitulo_documento_style))
+    story.append(Paragraph("Av. 17 de julio, FICA", cuerpo_documento_style))
+
+    # Configura el idioma para obtener la fecha en español
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+
+    # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
+    fecha = datetime.now().strftime('%d de %B de %Y')
+    hora = datetime.now().strftime('%I:%M %p')
+    fecha_hora_texto = f"Fecha de impresión: {fecha}, {hora}"
+    fecha_hora_style = ParagraphStyle(
+        'FechaHoraStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Puedes ajustar el tipo de letra según tu preferencia
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        alignment=0,  # 0 representa la alineación a la izquierda
+        spaceBefore=-12,
+    )
+    story.append(Spacer(1, 5))  # Separación pequeña
+    story.append(Paragraph(fecha_hora_texto, fecha_hora_style))
+
 
     # Información del cliente
     story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Información del Cliente", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph(f"Nombre del Cliente: {factura.invo_prov_id.prov_name}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"Dirección del Cliente: {factura.invo_prov_id.prov_address}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"Número de Teléfono: {factura.invo_prov_id.prov_phone}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph("Información del Cliente", subtitulo_documento_style))
+    story.append(Paragraph(f"Nombre del Cliente: {factura.invo_prov_id.prov_name}", cuerpo_documento_style))
+    story.append(Paragraph(f"Dirección del Cliente: {factura.invo_prov_id.prov_address}", cuerpo_documento_style))
+    story.append(Paragraph(f"Número de Teléfono: {factura.invo_prov_id.prov_phone}", cuerpo_documento_style))
+
+        # Estilo personalizado para los detalles adicionales de la factura
+    detalles_factura_style = ParagraphStyle(
+        'DetallesFacturaStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=2,
+    )
+
+            # Estilo personalizado para los detalles adicionales de la factura
+    tipo_style = ParagraphStyle(
+        'TipoStyle',
+        parent=styles['BodyText'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Regular"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=colors.black,  # Color del texto (ajusta según tu preferencia)
+        alignment=2,
+    )
+
+    # Detalles adicionales de la factura
+    story.append(Spacer(1, -100))  # Espacio en blanco
+    story.append(Paragraph("Detalles Adicionales", detalles_factura_style))
+    story.append(Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}",  tipo_style))
+
+    if factura.invo_pay_type.pay_name == 'Contado':
+        story.append(Paragraph(f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}",  tipo_style))
 
     # Información de la compra (tabla)
-    story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Información de la Compra", getSampleStyleSheet()['Heading2']))
+    story.append(Spacer(1, 50))  # Espacio en blanco
+    story.append(Paragraph("Información de la Compra", subtitulo_documento_style))
 
     data = [['SL', 'Descripción del Producto', 'Precio', 'Cantidad', 'Impuesto', 'Total']]
 
@@ -1053,9 +1295,11 @@ def generar_pdf(request, invoice_id):
     style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.orange),
                         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                        ('FONTNAME', (0, 0), (-1, 0), 'Courier'),
                         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige)])
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('LEFTPADDING', (0, 0), (-1, -1), 6),  # Ajusta el relleno izquierdo
+                        ('RIGHTPADDING', (0, 0), (-1, -1), 6),])
 
     # Construir la tabla y aplicar el estilo
     compra_table = Table(data)
@@ -1063,29 +1307,85 @@ def generar_pdf(request, invoice_id):
 
     story.append(compra_table)
 
-    # Detalles adicionales de la factura
-    story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Detalles Adicionales", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph(f"Tipo de Pago: {factura.invo_pay_type.pay_name}", getSampleStyleSheet()['BodyText']))
-
-
-    if factura.invo_pay_type.pay_name == 'Contado':
-        story.append(Paragraph(f"Fecha de Expiración: {factura.expedition_date or 'Desconocida'}", getSampleStyleSheet()['BodyText']))
-
+        # Estilo personalizado para los detalles adicionales de la factura
+    totales_factura_style = ParagraphStyle(
+        'DetallesFacturaStyle',
+        parent=styles['Heading2'],
+        fontName='Courier',  # Ajusta según la fuente "Poppins-Bold"
+        fontSize=10,  # Ajusta el tamaño de la fuente según tu preferencia
+        textColor=orange,  # Color del texto (naranja en este caso)
+        spaceAfter=6,  # Espacio después del párrafo (puedes ajustarlo según tu preferencia)
+        bold=True,  # Texto en negrita
+        alignment=2,
+    )
     # Totales
     story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Totales", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph(f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"IVA 12%: {iva12:.2f}", getSampleStyleSheet()['BodyText']))
-    story.append(Paragraph(f"Valor Total: {valor_total:.2f}", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph("Totales", totales_factura_style))
 
-    # Pie de página
+    # Ajustar el estilo para justificar a la derecha
+    subtotal_sin_impuestos_style = ParagraphStyle(
+        'SubtotalSinImpuestosStyle',
+        parent=getSampleStyleSheet()['BodyText'],
+        spaceAfter=8, 
+        borderPadding=(5, 5, 5, 5),
+        borderColor=colors.orange,
+        borderWidth=1,
+        alignment=2,  # Alinea a la derecha
+        leftIndent=300,
+        fontName='Courier', 
+    )
+    iva12_style = ParagraphStyle(
+        'IVA12Style',
+        borderPadding=(5, 5, 5, 5),
+        spaceAfter=8, 
+        borderColor=colors.orange,
+        borderWidth=1,
+        alignment=2,  # Alinea a la derecha
+        leftIndent=300,
+        fontName='Courier', 
+    )
+    valor_total_style = ParagraphStyle(
+        'ValorTotalStyle',
+        parent=getSampleStyleSheet()['BodyText'],
+        spaceAfter=8, 
+        borderPadding=(5, 5, 5, 5),
+        borderColor=colors.orange,
+        borderWidth=1,
+        alignment=2,  # Alinea a la derecha
+        leftIndent=300,
+        fontName='Courier', 
+    )
+
+    story.append(Paragraph(f"Subtotal sin impuestos: {subtotal_sin_impuestos:.2f}", subtotal_sin_impuestos_style))
+    story.append(Paragraph(f"IVA 12%: {iva12:.2f}", iva12_style))
+    story.append(Paragraph(f"Valor Total: {valor_total:.2f}", valor_total_style))
+
+    # Obtener la fecha de expiración desde tu objeto 'factura' (asegúrate de que sea un objeto de tipo datetime)
+    fecha_expiracion = factura.expedition_date or None
+
+    # Convertir la cadena 'fecha_hora_texto' a un objeto datetime
+    fecha_hora_texto_datetime = datetime.strptime(fecha_hora_texto, "Fecha de impresión: %d de %B de %Y, %I:%M %p")
+
+    # Convertir la fecha de expiración a datetime si no es None
+    fecha_expiracion_datetime = datetime.combine(fecha_expiracion, datetime.min.time()) if fecha_expiracion else None
+
+    # Calcular la diferencia en días entre la fecha de expiración y la fecha de impresión
+    diferencia_dias = (fecha_expiracion_datetime - fecha_hora_texto_datetime).days if fecha_expiracion_datetime else None
+
+    # Mensaje según la diferencia de días
+    if diferencia_dias is not None and diferencia_dias > 0:
+        mensaje_pago = f"El pago se efectuará en {diferencia_dias} días."
+    elif diferencia_dias == 0:
+        mensaje_pago = "Hoy es el último día para realizar el pago."
+    else:
+        mensaje_pago = "Plazo finalizado."
+
     story.append(Spacer(1, 12))  # Espacio en blanco
-    story.append(Paragraph("Condiciones de Pago", getSampleStyleSheet()['Heading2']))
-    story.append(Paragraph("El pago se efectuará en 15 días.", getSampleStyleSheet()['BodyText']))
+    story.append(Paragraph("Condiciones de Pago", detalles_factura_style))
+    story.append(Paragraph(mensaje_pago, valor_total_style))
 
     # Construir el PDF
-    doc.build(story)
+    doc.build(story, onFirstPage=draw_background)
 
     return response
 

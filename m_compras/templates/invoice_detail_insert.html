@@ -1,168 +1,296 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-      <title>Tienda de Productos</title>
-      <link rel="stylesheet" href="{% static 'css/deta.css' %}" />
-      <!-- ... (otras etiquetas meta, title, etc.) ... -->
-    <body>
-      <div class="left-side">
-        <div class="product-list">
-          {% for product in products %}
-            <div class="product-card">
-              <div class="product-image">
-                <img src="{{ product.pro_image_url }}" alt="{{ product.pro_name }}" loading="lazy" />
-              </div>
-              <div class="product-details">
-                <h4>{{ product.pro_name }}</h4>
-                <p class="description">Descripción: {{ product.pro_descripcion }}</p>
-                <p class="price">Precio: ${{ product.pro_pvp }}</p>
-                <p class="stock">Stock: {{ product.pro_stock }}</p>
-                <p class="iva">Iva: {{ product.pro_iva }}</p>
-                <div class="quantity-input">
-                  <label for="quantity{{ product.pro_id }}">Cantidad:</label>
-                  <input type="number" id="quantity{{ product.pro_id }}" name="quantity{{ product.pro_id }}" value="1" min="1" />
-                </div>
-                <button class="add-to-cart" onclick="addProductToInvoiceDetail(
-            '{{ product.pro_id }}',
-            '{{ product.pro_name }}',
-            '{{ product.pro_pvp }}',
-            '{{ product.pro_stock }}',
-            '{{ product.pro_iva|lower }}')">Agregar al Carrito</button>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    integrity="sha512-qzQDbl2BMX68fiWlHqESgHnQUdyNaa9Uz44e5w70iJWILl3e9MCZkP1CSn8LkJB4sGjgGqkg8H6fs9lT2cpliQ=="
+    crossorigin="anonymous" />
+<title>Tienda de Productos</title>
+<link rel="stylesheet" href="{% static 'css/deta.css' %}" />
 
-      <div class="right-side">
-        <h2>Productos Agregados</h2>
-        <form method="post" action="{% if invo_det_invo_id %}{% url 'invoice_detail_insert' invo_det_invo_id %}{% endif %}">
-          {% csrf_token %}
-          <!-- Contenido de la derecha -->
-          <table border="1">
-            <thead>
-              <tr>
-                <th>Accion</th>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Cantidad</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody id="invoice_detail_table"></tbody>
-          </table>
-          <!-- Mostrar errores si existen -->
-          {% if error %}
-            <div>{{ error }}</div>
-          {% endif %}
-          <!-- Botón para registrar productos -->
-          <button id="subir" type="button" onclick="registerProducts()">Registrar Productos</button>
-        </form>
-      </div>
-
-      <script src="https://code.jquery.com/jquery-3.6.4.min.js" async></script>
-      <script>
-        // Variable global para almacenar los productos
-        let products_data = [];
-
-// Función para agregar o actualizar un producto en la tabla de la derecha
-function addProductToInvoiceDetail(productId, productName, productPrice, productStock, productIva) {
-    var quantity = $('#quantity' + productId).val();
-    var subtotal = parseFloat(productPrice) * parseInt(quantity);
-
-    // Buscar si el producto ya existe en el array
-    var existingProduct = products_data.find(p => p.prod_id === productId);
-
-    if (existingProduct) {
-        // Actualizar la cantidad y subtotal del producto existente
-        existingProduct.prod_quantity = parseInt(existingProduct.prod_quantity) + parseInt(quantity);
-        existingProduct.prod_subtotal += subtotal;
-    } else {
-        // Crear un nuevo objeto producto y agregarlo al array
-        var newProduct = {
-            prod_id: productId,
-            prod_name: productName,
-            prod_price: productPrice,
-            prod_quantity: quantity,
-            prod_subtotal: subtotal
-        };
-        products_data.push(newProduct);
+<style>
+    .product-card {
+        display: flex;
+        margin-bottom: 15px;
+        padding: 10px;
+        border: 1px solid #ccc;
     }
 
-    // Actualizar la tabla
-    updateInvoiceDetailTable();
-}
+    .product-image {
+        flex-basis: 30%;
+    }
 
-// Función para actualizar la tabla de detalles de la factura
-function updateInvoiceDetailTable() {
-    var tableBody = $('#invoice_detail_table');
-    tableBody.empty(); // Limpiar la tabla antes de agregar nuevas filas
+    .product-image img {
+        width: 100%;
+        height: auto;
+    }
 
-    // Agregar cada producto al DOM de la tabla
-    products_data.forEach(product => {
-        var newRow = `<tr>
-            <td><button id="quitar" type="button" onclick="removeProduct('${product.prod_id}')">Eliminar</button></td>
-            <td>${product.prod_name}</td>
-            <td>${product.prod_price}</td>
-            <td>${product.prod_quantity}</td>
-            <td>${product.prod_subtotal}</td>
-        </tr>`;
-        tableBody.append(newRow);
-    });
-}
-          // Nueva función para eliminar un producto de la tabla
-        function removeProduct(productId) {
-          // Filtrar el array de productos para excluir el producto con el ID proporcionado
-          products_data = products_data.filter(product => product.prod_id !== productId);
-          // Actualizar la tabla después de eliminar el producto
+    .product-details {
+        flex-basis: 70%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-left: 15px;
+    }
+
+    .product-details h4 {
+        margin-top: 0;
+        font-weight: bold;
+        color: #000;
+        margin-bottom: 10px;
+    }
+
+    .product-details p {
+        margin-bottom: 5px;
+    }
+
+    .quantity-input {
+        display: flex;
+        align-items: center;
+    }
+
+    .quantity-input label {
+        margin-right: 10px;
+    }
+
+    .add-to-cart {
+        background-color: #ff6e2f;
+        color: white;
+        padding: 8px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    /* Agregamos la clase 'added-to-cart' a la tarjeta del producto en el carrito */
+    .added-to-cart {
+        background-color: #e5e5e5;
+    }
+</style>
+
+<body>
+ <!-- Contenido ... -->
+ <form id="search-form" style="display: flex; align-items: center; margin-bottom: 20px;">
+  <input type="text" id="search-input" name="search" placeholder="Buscar..."
+      style="padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+  <button class="material-icons-outlined search-icon" style="margin-left: 10px;" onclick="searchProducts()">search</button>
+</form>
+<div class="left-side">
+  <div class="product-list">
+      {% for product in products %}
+      <div class="product-card product-{{ product.pro_name }}">
+          <div class="product-image">
+              <img src="{{ product.pro_image_url }}" alt="{{ product.pro_name }}" loading="lazy" />
+          </div>
+          <div class="product-details">
+              <h4>{{ product.pro_name }}</h4>
+              <p class="description">Descripción: {{ product.pro_descripcion }}</p>
+              <p class="price">Precio: ${{ product.pro_pvp }}</p>
+              <p class="stock">Stock: {{ product.pro_stock }}</p>
+              <p class="iva">Iva: {{ product.pro_iva }}</p>
+              <div class="quantity-input">
+                  <label for="quantity{{ product.pro_id }}">Cantidad:</label>
+                  <input type="number" id="quantity{{ product.pro_id }}" name="quantity{{ product.pro_id }}" value="1" min="1" />
+              </div>
+              <button class="add-to-cart" onclick="addProductToInvoiceDetail(
+                      '{{ product.pro_id }}',
+                      '{{ product.pro_name }}',
+                      '{{ product.pro_pvp }}',
+                      '{{ product.pro_stock }}',
+                      '{{ product.pro_iva|lower }}')">Agregar al Carrito</button>
+          </div>
+      </div>
+      {% endfor %}
+  </div>
+</div>
+
+<div class="right-side">
+  <h2>Productos Agregados</h2>
+  <form method="post" action="{% if invo_det_invo_id %}{% url 'invoice_detail_insert' invo_det_invo_id %}{% endif %}">
+      {% csrf_token %}
+      <!-- Contenido de la derecha -->
+      <table border="1">
+          <thead>
+              <tr>
+                  <th>Accion</th>
+                  <th>Producto</th>
+                  <th>Precio</th>
+                  <th>Cantidad</th>
+                  <th>Subtotal</th>
+              </tr>
+          </thead>
+          <tbody id="invoice_detail_table"></tbody>
+      </table>
+      <!-- Mostrar errores si existen -->
+      {% if error %}
+      <div>{{ error }}</div>
+      {% endif %}
+      <!-- Botón para registrar productos -->
+      <button id="subir" type="button" onclick="registerProducts()">Registrar Productos</button>
+      <button id="imprimir" type="button" onclick="generarPDF()">
+          <i class="fas fa-file-pdf"></i> Generar PDF
+      </button>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js" async></script>
+<script>
+  // Variable global para almacenar los productos en el carrito
+  let cartProducts = [];
+
+  // Recuperar el término de búsqueda desde el almacenamiento local
+  let searchTerm = localStorage.getItem('searchTerm');
+  if (searchTerm) {
+      $('#search-input').val(searchTerm);
+      searchProducts();
+  }
+
+  // Cargar los productos del carrito al inicio de la página
+  loadCartProducts();
+
+  // Función para agregar o actualizar un producto en el carrito
+  function addProductToInvoiceDetail(productId, productName, productPrice, productStock, productIva) {
+      var quantity = $('#quantity' + productId).val();
+      var subtotal = parseFloat(productPrice) * parseInt(quantity);
+
+      // Buscar si el producto ya existe en el carrito
+      var existingCartItem = cartProducts.find(p => p.prod_id === productId);
+
+      if (existingCartItem) {
+          // Actualizar la cantidad y subtotal del producto en el carrito
+          existingCartItem.prod_quantity = parseInt(existingCartItem.prod_quantity) + parseInt(quantity);
+          existingCartItem.prod_subtotal += subtotal;
+      } else {
+          // Crear un nuevo objeto producto y agregarlo al carrito
+          var newCartItem = {
+              prod_id: productId,
+              prod_name: productName,
+              prod_price: productPrice,
+              prod_quantity: quantity,
+              prod_subtotal: subtotal
+          };
+          cartProducts.push(newCartItem);
+
+          // Agregar la clase 'added-to-cart' a la tarjeta del producto
+          $('.product-' + productId).addClass('added-to-cart');
+      }
+
+      // Actualizar la tabla
+      updateInvoiceDetailTable();
+  }
+
+  // Función para actualizar la tabla de detalles de la factura
+  function updateInvoiceDetailTable() {
+      var tableBody = $('#invoice_detail_table');
+      tableBody.empty(); // Limpiar la tabla antes de agregar nuevas filas
+
+      // Agregar cada producto al DOM de la tabla
+      cartProducts.forEach(product => {
+          var newRow = `<tr>
+              <td><button id="quitar" type="button" onclick="removeProduct('${product.prod_id}')">Eliminar</button></td>
+              <td>${product.prod_name}</td>
+              <td>${product.prod_price}</td>
+              <td>${product.prod_quantity}</td>
+              <td>${product.prod_subtotal}</td>
+          </tr>`;
+          tableBody.append(newRow);
+      });
+  }
+
+  // Función para eliminar un producto del carrito
+  function removeProduct(productId) {
+      // Filtrar el array de productos en el carrito para excluir el producto con el ID proporcionado
+      cartProducts = cartProducts.filter(product => product.prod_id !== productId);
+      // Actualizar la tabla después de eliminar el producto
+      updateInvoiceDetailTable();
+  }
+
+  // Función para cargar los productos del carrito al inicio de la página
+  function loadCartProducts() {
+      // Lógica para cargar productos desde el servidor o el almacenamiento local si es necesario
+      var storedCartProducts = localStorage.getItem('cartProducts');
+
+      if (storedCartProducts) {
+          // Parsear los productos almacenados en formato JSON
+          cartProducts = JSON.parse(storedCartProducts);
+
+          // Actualizar la tabla después de cargar los productos del carrito
           updateInvoiceDetailTable();
-        }
-        function registerProducts() {
-            // Verificar si hay productos para registrar
-            if (products_data.length === 0) {
-                alert('No hay productos para registrar.');
-                return;
-            }
+      }
+  }
 
-            // Obtener el token CSRF del documento
-            var csrfToken = $('input[name=csrfmiddlewaretoken]').val()
+  // Función para registrar productos
+  function registerProducts() {
+      // Verificar si hay productos para registrar
+      if (cartProducts.length === 0) {
+          alert('No hay productos para registrar.');
+          return;
+      }
 
-            // Obtener el invo_det_invo_id de la URL actual
-            var invo_det_invo_id = window.location.pathname.split('/').slice(-2, -1)[0]
+      // Obtener el token CSRF del documento
+      var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
 
-            console.log('products_data =', products_data)
+      // Obtener el invo_det_invo_id de la URL actual
+      var invo_det_invo_id = window.location.pathname.split('/').slice(-2, -1)[0];
 
-            let products_json = JSON.stringify(products_data)
+      console.log('cartProducts =', cartProducts);
 
-            console.log('products_json =', products_json)
+      let products_json = JSON.stringify(cartProducts);
 
-            // Enviar los datos al servidor mediante una petición AJAX
-            $.ajax({
-                type: 'POST',
-                url: '/m_compras/invoice_detail_insert/' + invo_det_invo_id + '/',
-                data: JSON.stringify({ "products": products_data }),
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'X-CSRFToken': csrfToken
-                },
-                success: function (response) {
-                    // Manejar la respuesta del servidor si es necesario
-                    alert('Productos registrados con éxito');
+      console.log('products_json =', products_json);
 
-                    // Redirigir a la página de consultar_facturas
-                    window.location.href = '/m_compras/consultar_facturas/';
-                },
-                dataType: 'json',
-                error: function (error) {
-                    console.error('Error al registrar productos:', error)
-                    alert('Error al registrar productos. Detalles en la consola.')
-                }
-            });
+      // Enviar los datos al servidor mediante una petición AJAX
+      $.ajax({
+          type: 'POST',
+          url: '/m_compras/invoice_detail_insert/' + invo_det_invo_id + '/',
+          data: JSON.stringify({ "products": cartProducts }),
+          contentType: 'application/json; charset=utf-8',
+          headers: {
+              'X-CSRFToken': csrfToken
+          },
+          success: function (response) {
+              // Manejar la respuesta del servidor si es necesario
+              alert('Productos registrados con éxito');
 
-            // Limpiar el array después de enviar los datos
-            products_data = [];
-        }
-      </script>
-      
-    </body>
+              // Redirigir a la página de consultar_facturas
+              window.location.href = '/m_compras/consultar_facturas/';
+          },
+          dataType: 'json',
+          error: function (error) {
+              console.error('Error al registrar productos:', error);
+              alert('Error al registrar productos. Detalles en la consola.');
+          }
+      });
+
+      // Limpiar el array después de enviar los datos
+      cartProducts = [];
+      // Limpiar la tabla después de registrar los productos
+      updateInvoiceDetailTable();
+  }
+
+  // Función para generar PDF
+  function generarPDF() {
+      // Implementar la lógica para generar PDF si es necesario
+      // ...
+  }
+
+  // Función para buscar productos
+  function searchProducts() {
+      searchTerm = $('#search-input').val().toLowerCase();
+      localStorage.setItem('searchTerm', searchTerm);
+
+      var productCards = $('.product-card');
+
+      // Mostrar todas las tarjetas de productos antes de filtrar
+      productCards.show();
+
+      // Filtrar las tarjetas de productos que coinciden con la búsqueda por nombre
+      var matchingCards = productCards.filter(function () {
+          return $(this).find('h4').text().toLowerCase().indexOf(searchTerm) !== -1;
+      });
+
+      // Ocultar solo las tarjetas que no coinciden y que no están en el carrito
+      productCards.not(matchingCards).not('.added-to-cart').hide();
+  }
+    </script>
+</body>
 {% endblock %}

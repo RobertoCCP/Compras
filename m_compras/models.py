@@ -150,3 +150,8 @@ class Personal(models.Model):
   def __str__(self):
     # Return the model's username
     return self.username
+  
+  from django.db import models
+
+class NumeroFactura(models.Model):
+    numero = models.IntegerField(default=1)

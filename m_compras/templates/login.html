@@ -87,39 +87,64 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
-    $(document).ready(function () {
-        $('.login-box form').submit(function (e) {  // Cambiado a '.login-box form'
-            e.preventDefault();
-            var form = $(this);
-            $.ajax({
-                type: form.attr('method'),
-                url: form.attr('action'),
-                data: form.serialize(),
-                dataType: 'json',
-                success: function (data) {
-                    if (data.success) {
-                        Swal.fire({
-                            title: 'Éxito',
-                            text: 'Login correcto',
-                            icon: 'success'
-                        }).then(function () {
-                            window.location.href = '{% url "dashboard" %}';
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: data.error,
-                            icon: 'error'
-                        });
+        $(document).ready(function () {
+            // Cambié el selector a '.login-box form'
+            $('.login-box form').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+    
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.success) {
+                            // Mensaje de éxito personalizado
+                            Swal.fire({
+                                title: '¡Bienvenido!',
+                                text: 'Has iniciado sesión correctamente',
+                                icon: 'success',
+                                showCloseButton: true,
+                                position: 'top-end',
+                                toast: true,
+                                customClass: {
+                                    popup: 'colored-popup',
+                                    title: 'colored-title',
+                                    closeButton: 'colored-close-button'
+                                },
+                                confirmButtonColor: '#4CAF50',
+                                confirmButtonText: 'Continuar',
+                            }).then(function () {
+                                // Redirige al panel de control o dashboard
+                                window.location.href = '{% url "dashboard" %}';
+                            });
+                        } else {
+                            // Mensaje de error personalizado
+                            Swal.fire({
+                                title: 'Error de inicio de sesión',
+                                text: data.error,
+                                icon: 'error',
+                                showCloseButton: true,
+                                position: 'top-end',
+                                toast: true,
+                                customClass: {
+                                    popup: 'colored-popup',
+                                    title: 'colored-title',
+                                    closeButton: 'colored-close-button'
+                                },
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'Cerrar',
+                            });
+                        }
+                    },
+                    error: function () {
+                        console.error('Error al realizar la solicitud AJAX');
                     }
-                },
-                error: function () {
-                    console.error('Error al realizar la solicitud AJAX');
-                }
+                });
             });
         });
-    });
-</script>
+    </script>
 </body>
 
 </html>

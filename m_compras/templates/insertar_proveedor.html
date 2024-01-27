@@ -49,26 +49,171 @@
     </form>
  
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
 $(document).ready(function () {
     $('.form-container').submit(function (e) {
         e.preventDefault();
         var form = $(this);
-        $.ajax({
-            type: form.attr('method'),
-            url: form.attr('action'),
-            data: form.serialize(),
-            dataType: 'json',
-            success: function (data) {
-                if (data.success) {
-                    alert('Cambios guardados exitosamente');
-                    window.location.href = '{% url "consultar_proveedores" %}';
-                } else {
-                    alert(data.error);  // Muestra solo el mensaje de error
+
+        // Validation for prov_city
+        var ciudadInput = $('[name="prov_city"]');
+        if (validateTextInput(ciudadInput, 20, 'La ciudad no puede tener más de 20 caracteres.') ||
+            validateSpecialCharacters(ciudadInput, 'La ciudad no puede contener caracteres especiales.')) {
+            return false;
+        }
+
+        // Validation for prov_name
+        var nombreInput = $('[name="prov_name"]');
+        if (validateTextInput(nombreInput, 30, 'El nombre no puede tener más de 30 caracteres.') ||
+            validateSpecialCharacters(nombreInput, 'El nombre no puede contener caracteres especiales.')) {
+            return false;
+        }
+
+        // Validation for prov_address
+        var direccionInput = $('[name="prov_address"]');
+        if (validateTextInput(direccionInput, 100, 'La dirección no puede tener más de 100 caracteres.')) {
+            return false;
+        }
+
+        // Validation for prov_phone
+        var telefonoInput = $('[name="prov_phone"]');
+        if (!validatePhoneNumber(telefonoInput)) {
+            return false;
+        }
+
+        // Validation for prov_email
+        var emailInput = $('[name="prov_email"]');
+        if (validateTextInput(emailInput, 30, 'El correo electrónico no puede tener más de 30 caracteres.')) {
+            return false;
+        }
+
+        // Validation for prov_dni
+        var dniInput = $('[name="prov_dni"]');
+        var dniLength = dniInput.val().length;
+
+        if (dniLength === 10 || dniLength === 13) {
+            $.ajax({
+                type: form.attr('method'),
+                url: form.attr('action'),
+                data: form.serialize(),
+                dataType: 'json',
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Éxito',
+                            text: 'Cambios guardados exitosamente',
+                            icon: 'success',
+                            showCloseButton: true,
+                            position: 'top-end',
+                            toast: true,
+                            customClass: {
+                                popup: 'colored-popup',
+                                title: 'colored-title',
+                                closeButton: 'colored-close-button'
+                            },
+                            confirmButtonColor: '#4CAF50',
+                            confirmButtonText: 'Cerrar',
+                        }).then(function () {
+                            window.location.href = '{% url "consultar_proveedores" %}';
+                        });
+                    } else {
+                        // Handle other error messages
+                        handleDniRucErrors(data.error);
+                    }
+                },
+                error: function () {
+                    console.error('Error al realizar la solicitud AJAX');
                 }
-            },
-        });
+            });
+        } else {
+            showValidationError('La cédula/RUC ingresada no es válida');
+        }
+
+        // Function to handle DNI/RUC errors
+        function handleDniRucErrors(error) {
+            if (error.includes('La cédula ingresada no es válida')) {
+                showValidationError('La cédula ingresada no es válida');
+            } else if (error.includes('El RUC ingresado no es válido')) {
+                showValidationError('El RUC ingresado no es válido');
+            } else if (error.includes('La cédula o DNI ya existe en la tabla "Providers".')) {
+                showValidationError('La cédula o DNI ya existe en la tabla "Providers".');
+            } else if (error.includes('El formato del documento ingresado no es válido')) {
+                showValidationError('El formato del documento ingresado no es válido');
+            } else {
+                // Handle other DNI/RUC errors
+                mostrarError('Error', error);
+            }
+        }
+
+        // Function to validate text input
+        function validateTextInput(input, maxLength, errorMessage) {
+            if (input.val().length > maxLength) {
+                showValidationError(errorMessage);
+                return true;
+            }
+            return false;
+        }
+
+        // Function to validate special characters
+        function validateSpecialCharacters(input, errorMessage) {
+            var caracteresEspeciales = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/;
+            if (caracteresEspeciales.test(input.val())) {
+                showValidationError(errorMessage);
+                return true;
+            }
+            return false;
+        }
+
+        // Function to validate phone number
+        function validatePhoneNumber(input) {
+            var telefono = input.val();
+            if (/^[0-9()+\s-]+$/.test(telefono) && telefono.length > 0 && telefono.length <= 20) {
+                return true;
+            } else {
+                showValidationError('Número de teléfono incorrecto o tiene más de 20 dígitos');
+                return false;
+            }
+        }
+
+        // Function to show validation error using Swal
+        function showValidationError(errorMessage) {
+            Swal.fire({
+                title: 'Error de validación',
+                text: errorMessage,
+                icon: 'error',
+                showCloseButton: true,
+                position: 'top-end',
+                toast: true,
+                customClass: {
+                    popup: 'colored-popup',
+                    title: 'colored-title',
+                    closeButton: 'colored-close-button'
+                },
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Cerrar',
+            });
+        }
+
+        // Function to handle other error messages
+        function mostrarError(title, errorMessage) {
+            Swal.fire({
+                title: title,
+                text: errorMessage,
+                icon: 'error',
+                showCloseButton: true,
+                position: 'top-end',
+                toast: true,
+                customClass: {
+                    popup: 'colored-popup',
+                    title: 'colored-title',
+                    closeButton: 'colored-close-button'
+                },
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Cerrar',
+            });
+        }
     });
 });
-    </script>
+</script>
 {% endblock %}
