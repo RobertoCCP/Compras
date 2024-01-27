@@ -171,7 +171,7 @@ class Titanic(models.Model):
     pclass = models.IntegerField(null=True, blank=True)
     sex = models.CharField(max_length=10, null=True, blank=True)
     sibsp = models.IntegerField(null=True, blank=True)
-    survived = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    predicted_survived = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
     ticket = models.CharField(max_length=100, null=True, blank=True)
     title = models.CharField(max_length=50, null=True, blank=True)
     family_size = models.IntegerField(null=True, blank=True)

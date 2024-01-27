@@ -48,38 +48,38 @@
                 <p>Título: {{ passenger.title }}</p>
                 <p>Tamaño de la familia: {{ passenger.family_size }}</p>
             </div>
-            <div id="passenger-data" data-survived="{{ passenger.survived }}" data-found="true" style="display: none;"></div>
-            {% else %}
-                {% if 'passengerid' in request.GET %}
-                    <div id="passenger-data" data-found="false" style="display: none;"></div>
-                {% endif %}
+            <div id="passenger-data" data-predicted-survived="{{ passenger.predicted_survived }}" data-found="true" style="display: none;"></div>
+        {% else %}
+            {% if 'passengerid' in request.GET %}
+                <div id="passenger-data" data-found="false" style="display: none;"></div>
             {% endif %}
-        </div>
-    
-        <script>
-            window.onload = function() {
-                var passengerData = document.getElementById('passenger-data');
-                if (passengerData) {
-                    var passengerFound = passengerData.getAttribute('data-found') === 'true';
-                    var passengerSurvived = passengerData.getAttribute('data-survived') === '1.0';
-    
-                    if (passengerFound) {
-                        Swal.fire({
-                            title: 'Resultado de la Búsqueda',
-                            text: passengerSurvived ? 'El pasajero sobrevivió.' : 'El pasajero no sobrevivió.',
-                            icon: passengerSurvived ? 'success' : 'error',
-                            confirmButtonText: 'Cerrar'
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'No Encontrado',
-                            text: 'No se encontró un pasajero con ese ID.',
-                            icon: 'error',
-                            confirmButtonText: 'Cerrar'
-                        });
-                    }
+        {% endif %}
+    </div>
+
+    <script>
+        window.onload = function() {
+            var passengerData = document.getElementById('passenger-data');
+            if (passengerData) {
+                var passengerFound = passengerData.getAttribute('data-found') === 'true';
+                var passengerSurvived = passengerData.getAttribute('data-predicted-survived') === '1.0';
+
+                if (passengerFound) {
+                    Swal.fire({
+                        title: 'Resultado de la Búsqueda',
+                        text: passengerSurvived ? 'Se predice que el pasajero sobrevivió.' : 'Se predice que el pasajero no sobrevivió.',
+                        icon: passengerSurvived ? 'success' : 'error',
+                        confirmButtonText: 'Cerrar'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'No Encontrado',
+                        text: 'No se encontró un pasajero con ese ID.',
+                        icon: 'error',
+                        confirmButtonText: 'Cerrar'
+                    });
                 }
-            };
-        </script>
+            }
+        };
+    </script>
 </body>
 </html>
