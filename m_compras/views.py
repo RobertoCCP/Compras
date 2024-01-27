@@ -1436,14 +1436,11 @@ def search_passenger(request):
 
 # Las vistas correspondientes en views.py
 def bienvenida(request):
-    return render(request, 'search.html')
+    return render(request, 'bienvenida.html')
 
 # Las vistas correspondientes en views.py
 def bienvenida2(request):
-    return render(request, 'search2.html')
-
-def formulario(request):
-    return render(request, 'f.html')
+    return render(request, 'bienvenida2.html')
 
 
 from .models import Titanic2  # Importa el modelo Titanic2 en lugar de Titanic

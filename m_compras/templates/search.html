@@ -7,15 +7,30 @@
     <style>
         body {
             padding: 20px;
+            background: linear-gradient(to right, #FFA500, #FF0000); /* Fondo degradado de izquierda a derecha */
         }
         .container {
             max-width: 600px;
             margin: auto;
+            background-color: rgba(255, 255, 255, 0.9); /* Fondo blanco semitransparente para el contenido */
+            padding: 20px;
+            border-radius: 10px; /* Bordes redondeados */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
         }
         .result-box {
             border: 1px solid #ddd;
             padding: 20px;
             margin-top: 20px;
+            border-radius: 5px; /* Bordes redondeados para la caja de resultados */
+        }
+        .btn-primary {
+            background-color: #007BFF; /* Color del botón original */
+            border-color: #000000; /* Color del borde del botón original */
+            transition: background-color 0.3s, border-color 0.3s; /* Transición suave al cambiar el color */
+        }
+        .btn-primary:hover {
+            background-color: #3cfc0d; /* Nuevo color del botón al pasar el mouse */
+            border-color: #0056b3; /* Nuevo color del borde al pasar el mouse */
         }
     </style>
 </head>
