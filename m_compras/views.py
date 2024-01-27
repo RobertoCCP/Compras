@@ -1423,7 +1423,12 @@ def search_passenger(request):
     if 'passengerid' in request.GET:
         id = request.GET['passengerid']
         if id:
-            passenger = get_object_or_404(Titanic, passengerid=id)
+            try:
+                passenger = Titanic.objects.get(passengerid=id)
+            except Titanic.DoesNotExist:
+                # Si no se encuentra el pasajero, redirige con un mensaje
+                messages.error(request, 'No se encontró un pasajero con ese ID.')
+                return HttpResponseRedirect(request.path)  # Redirige a la misma página
 
     return render(request, 'search.html', {'passenger': passenger})
 
@@ -1433,5 +1438,32 @@ def search_passenger(request):
 def bienvenida(request):
     return render(request, 'search.html')
 
+# Las vistas correspondientes en views.py
+def bienvenida2(request):
+    return render(request, 'search2.html')
+
 def formulario(request):
     return render(request, 'f.html')
+
+
+from .models import Titanic2  # Importa el modelo Titanic2 en lugar de Titanic
+
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib import messages
+from .models import Titanic2
+
+def search_passenger2(request):
+    passenger = None
+    if 'passengerid' in request.GET:
+        id = request.GET['passengerid']
+        if id:
+            try:
+                passenger = Titanic2.objects.get(passengerid2=id)
+            except Titanic2.DoesNotExist:
+                # Si no se encuentra el pasajero, redirige con un mensaje
+                messages.error(request, 'No se encontró un pasajero con ese ID.')
+                return HttpResponseRedirect(request.path)  # Redirige a la misma página
+
+    return render(request, 'search2.html', {'passenger': passenger})

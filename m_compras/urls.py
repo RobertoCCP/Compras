@@ -23,8 +23,10 @@ from .views import (
     login2,
     logout2,
     search_passenger,
+    search_passenger2,
     formulario,
-    bienvenida
+    bienvenida,
+    bienvenida2
 )
 
 urlpatterns = [
@@ -63,9 +65,10 @@ urlpatterns = [
     ),
     path('reporte_proveedores/', reporte_proveedores, name='reporte_proveedores'),
 
-   path('generar_pdf/<int:invoice_id>/', generar_pdf, name='generar_pdf'),
-
+    path('generar_pdf/<int:invoice_id>/', generar_pdf, name='generar_pdf'),
+    path('bienvenida', bienvenida, name='bienvenida'),
+    path('bienvenida2', bienvenida2, name='bienvenida2'),
     path('f', formulario, name='formulario'),
-     path('search/', search_passenger, name='search_passenger'),
-     path('bienvenida', bienvenida, name='bienvenida'),
+    path('search/', search_passenger, name='search_passenger'),
+    path('search2/', search_passenger2, name='search_passenger2'),
 ]

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buscar Pasajero del Titanic</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .result-box {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Buscar Pasajero del Titanic</h1>
+        <form method="GET" action="">
+            <div class="form-group">
+                <label for="passengerid">ID del Pasajero:</label>
+                <input type="text" class="form-control" id="passengerid" name="passengerid">
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        {% if passenger %}
+            <div class="result-box">
+                <h2>Detalles del Pasajero:</h2>
+                <p>ID: {{ passenger.passengerid2 }}</p>
+                <p>Edad: {{ passenger.age2 }}</p>
+                <p>Puerto de Embarque: 
+                    {% if passenger.embarked_c2 == 1 %}
+                        C
+                    {% elif passenger.embarked_q2 == 1 %}
+                        Q
+                    {% elif passenger.embarked_s2 == 1 %}
+                        S
+                    {% else %}
+                        {{ passenger.embarked2 }}
+                    {% endif %}
+                </p>
+                <p>Tarifa: {{ passenger.fare2 }}</p>
+                <p>Número de padres/hij@s a bordo: {{ passenger.parch2 }}</p>
+                <p>Clase: {{ passenger.pclass2 }}</p>
+                <p>Sexo: 
+                    {% if passenger.sex2 == 0 %}
+                        Masculino
+                    {% elif passenger.sex2 == 1 %}
+                        Femenino
+                    {% else %}
+                        Otro
+                    {% endif %}
+                </p>
+                <p>Número de herman@s/espos@s a bordo: {{ passenger.sibsp2 }}</p>
+                <p>Título: 
+                    {% if passenger.title_dr2 == 1 %}
+                        Dr
+                    {% elif passenger.title_master2 == 1 %}
+                        Master
+                    {% elif passenger.title_miss2 == 1 %}
+                        Miss
+                    {% elif passenger.title_mr2 == 1 %}
+                        Mr
+                    {% elif passenger.title_mrs2 == 1 %}
+                        Mrs
+                    {% elif passenger.title_rev2 == 1 %}
+                        Rev
+                    {% else %}
+                        {{ passenger.title2 }}
+                    {% endif %}
+                </p>
+                <p>Tamaño de la familia: {{ passenger.family_size2 }}</p>
+                <p>Predicted_Survived: {{ passenger.predicted_survived2 }}</p>
+            </div>
+            <div id="passenger-data" data-predicted-survived="{{ passenger.predicted_survived2 }}" data-found="true" style="display: none;"></div>
+        {% else %}
+            {% if 'passengerid' in request.GET %}
+                <div id="passenger-data" data-found="false" style="display: none;"></div>
+            {% endif %}
+        {% endif %}
+    </div>
+    <script>
+        window.onload = function() {
+            var passengerData = document.getElementById('passenger-data');
+            if (passengerData) {
+                var passengerFound = passengerData.getAttribute('data-found') === 'true';
+
+                if (passengerFound) {
+                    var passengerSurvived = passengerData.getAttribute('data-predicted-survived') === '1.0';
+                    Swal.fire({
+                        title: 'Resultado de la Búsqueda',
+                        text: passengerSurvived ? 'Se predice que el pasajero sobrevivió.' : 'Se predice que el pasajero no sobrevivió.',
+                        icon: passengerSurvived ? 'success' : 'error',
+                        confirmButtonText: 'Cerrar'
+                    });
+                } else {
+                    var passengerID = document.getElementById('passengerid').value;
+                    if (passengerID < 892) {
+                        Swal.fire({
+                            title: 'No Encontrado',
+                            text: 'No se encontró un pasajero con ese ID.',
+                            icon: 'error',
+                            confirmButtonText: 'Cerrar'
+                        });
+                    }
+                }
+            }
+        };
+    </script>
+</body>
+</html>

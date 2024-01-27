@@ -181,3 +181,33 @@ class Titanic(models.Model):
 
     class Meta:
         db_table = 'tita'  # Nombre real de la tabla en la base de datos
+
+
+from django.db import models
+
+class Titanic2(models.Model):
+    age2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    fare2 = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    parch2 = models.IntegerField(null=True, blank=True)
+    passengerid2 = models.IntegerField(primary_key=True)
+    pclass2 = models.IntegerField(null=True, blank=True)
+    sex2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    sibsp2 = models.IntegerField(null=True, blank=True)
+    survived2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    family_size2 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    embarked_c2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    embarked_q2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    embarked_s2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    title_dr2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    title_master2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    title_miss2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    title_mr2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    title_mrs2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    title_rev2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    predicted_survived2 = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+
+    def __str__(self):
+        return f"Titanic2 passenger {self.passengerid2}"
+
+    class Meta:
+        db_table = 'tita2'
