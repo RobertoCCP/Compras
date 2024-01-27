@@ -89,10 +89,14 @@ from django.http import HttpResponse, JsonResponse
 
 
 def editar_proveedor(request, prov_id):
+    login_result = request.session.get('login_result', None)
+    funciones  =login_result.get("data", {}).get("token")
+    funcion= 'PRC-PROVIDERS-UPDATE'
     provider = get_object_or_404(Providers, prov_id=prov_id)
-
     if request.method == "POST":
         form = EditProviderForm(request.POST, instance=provider)
+        if not permisos(request,'PRC-PROVIDERS-UPDATE'):
+           return HttpResponseForbidden("No tienes permiso para acceder a esta función.")
         try:
             with transaction.atomic():
                 if form.is_valid():
@@ -126,11 +130,21 @@ def editar_proveedor(request, prov_id):
 
 from django.db import IntegrityError
 from django.db import transaction
+from django.http import HttpResponseForbidden
+import urllib.request
 
-
+def permisos(request, permisoRequerido):
+    login_result = request.session.get('login_result', None)
+    funciones = login_result.get("data", {}).get("functions", [])
+    for permiso in funciones:
+        if permiso == permisoRequerido:
+            return True
+    return False
 def insertar_proveedor(request):
     if request.method == "POST":
         form = ProviderForm(request.POST)
+        if not permisos(request,'PRC-PROVIDERS-CREATE'):
+           return HttpResponseForbidden("No tienes permiso para acceder a esta función.")
         try:
             with transaction.atomic():
                 if form.is_valid():
@@ -523,7 +537,10 @@ def listarDetalleFactura(request, factura_id):
     if detalles.exists():
         # Obtener el primer detalle para obtener información de la factura
         primer_detalle = detalles.first()
-
+        action = "Consultar detalle de facturas"
+        function_name = "PRC-INVOICE-READ"  # Ajustar según sea necesario
+        observation = ""
+        auditar_modulo_compras(request,action,function_name,observation)
         # Crear un diccionario con la información de la factura
         info_factura = {
             "invo_id": factura.invo_id,
@@ -700,7 +717,10 @@ class Invoice_Insert(View):
             if form.is_valid():
                 # Guardar la factura en la base de datos
                 invoice = form.save()
-
+                action = "Crear Factura"
+                function_name = "PRC-INVOICE-CREATE"  # Ajustar según sea necesario
+                observation = ""
+                auditar_modulo_compras(request, action,function_name,observation)
                 # Obtener el último ID de la factura recién creada
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -823,6 +843,10 @@ class Invoice_Detail_Insert_View(View):
                 invo_det_invo_id=invoice,
             )
             print(invoice_detail)
+            action = "Crear Detalle Factura"
+            function_name = "PRC-INVOICE_DETAIL-CREATE"  # Ajustar según sea necesario
+            observation = ""
+            auditar_modulo_compras(request, action,function_name,observation)
             invoice_detail.save()
 
         # Redirige a la misma vista después de procesar la solicitud POST
