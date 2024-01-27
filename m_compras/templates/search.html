@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buscar Pasajero del Titanic</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .result-box {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Buscar Pasajero del Titanic</h1>
+        <form method="GET" action="">
+            <div class="form-group">
+                <label for="passengerid">ID del Pasajero:</label>
+                <input type="text" class="form-control" id="passengerid" name="passengerid">
+            </div>
+            <button type="submit" class="btn btn-primary">Buscar</button>
+        </form>
+
+        {% if passenger %}
+            <div class="result-box">
+                <h2>Detalles del Pasajero:</h2>
+                <p>ID: {{ passenger.passengerid }}</p>
+                <p>Nombre: {{ passenger.name }}</p>
+                <p>Edad: {{ passenger.age }}</p>
+                <p>Cabina: {{ passenger.cabin }}</p>
+                <p>Puerto de Embarque: {{ passenger.embarked }}</p>
+                <p>Tarifa: {{ passenger.fare }}</p>
+                <p>Número de padres/hijos a bordo: {{ passenger.parch }}</p>
+                <p>Clase: {{ passenger.pclass }}</p>
+                <p>Sexo: {{ passenger.sex }}</p>
+                <p>Número de hermanos/esposos a bordo: {{ passenger.sibsp }}</p>
+                <p>Superviviente: {{ passenger.survived }}</p>
+                <p>Ticket: {{ passenger.ticket }}</p>
+                <p>Título: {{ passenger.title }}</p>
+                <p>Tamaño de la familia: {{ passenger.family_size }}</p>
+            </div>
+            <div id="passenger-data" data-survived="{{ passenger.survived }}" data-found="true" style="display: none;"></div>
+            {% else %}
+                {% if 'passengerid' in request.GET %}
+                    <div id="passenger-data" data-found="false" style="display: none;"></div>
+                {% endif %}
+            {% endif %}
+        </div>
+    
+        <script>
+            window.onload = function() {
+                var passengerData = document.getElementById('passenger-data');
+                if (passengerData) {
+                    var passengerFound = passengerData.getAttribute('data-found') === 'true';
+                    var passengerSurvived = passengerData.getAttribute('data-survived') === '1.0';
+    
+                    if (passengerFound) {
+                        Swal.fire({
+                            title: 'Resultado de la Búsqueda',
+                            text: passengerSurvived ? 'El pasajero sobrevivió.' : 'El pasajero no sobrevivió.',
+                            icon: passengerSurvived ? 'success' : 'error',
+                            confirmButtonText: 'Cerrar'
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'No Encontrado',
+                            text: 'No se encontró un pasajero con ese ID.',
+                            icon: 'error',
+                            confirmButtonText: 'Cerrar'
+                        });
+                    }
+                }
+            };
+        </script>
+</body>
+</html>

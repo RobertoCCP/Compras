@@ -2,6 +2,7 @@
 from django.urls import path
 from .views import (
     consultar_pago,
+    formulario,
     generar_pdf,
     login_view,
     dashboard_view,
@@ -20,7 +21,10 @@ from .views import (
     Invoice_Insert,
     Invoice_Detail_Insert_View,
     login2,
-    logout2
+    logout2,
+    search_passenger,
+    formulario,
+    bienvenida
 )
 
 urlpatterns = [
@@ -60,4 +64,8 @@ urlpatterns = [
     path('reporte_proveedores/', reporte_proveedores, name='reporte_proveedores'),
 
    path('generar_pdf/<int:invoice_id>/', generar_pdf, name='generar_pdf'),
+
+    path('f', formulario, name='formulario'),
+     path('search/', search_passenger, name='search_passenger'),
+     path('bienvenida', bienvenida, name='bienvenida'),
 ]

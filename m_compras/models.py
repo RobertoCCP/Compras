@@ -155,3 +155,29 @@ class Personal(models.Model):
 
 class NumeroFactura(models.Model):
     numero = models.IntegerField(default=1)
+
+
+
+from django.db import models
+
+class Titanic(models.Model):
+    age = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    cabin = models.CharField(max_length=50, null=True, blank=True)
+    embarked = models.CharField(max_length=1, null=True, blank=True)
+    fare = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    parch = models.IntegerField(null=True, blank=True)
+    passengerid = models.IntegerField(primary_key=True)
+    pclass = models.IntegerField(null=True, blank=True)
+    sex = models.CharField(max_length=10, null=True, blank=True)
+    sibsp = models.IntegerField(null=True, blank=True)
+    survived = models.DecimalField(max_digits=1, decimal_places=0, null=True, blank=True)
+    ticket = models.CharField(max_length=100, null=True, blank=True)
+    title = models.CharField(max_length=50, null=True, blank=True)
+    family_size = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Titanic passenger {self.passengerid}"
+
+    class Meta:
+        db_table = 'tita'  # Nombre real de la tabla en la base de datos
