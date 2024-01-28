@@ -480,7 +480,7 @@ def consultar_facturas(request):
         fecha_fin = request.GET.get("fecha_fin")
 
         # Obtener tipo de pago del formulario
-        tipo_pago = request.GET.get("type_pay")
+        tipo_pago = request.GET.get("tipo_pago")
 
         # Construir la consulta
         facturas_list = Invoice.objects.all()
@@ -579,10 +579,10 @@ def listarDetalleFactura(request, factura_id):
             "fecha": primer_detalle.invo_det_invo_id.invo_date,
             "tipo_pago": primer_detalle.invo_det_invo_id.invo_pay_type.pay_name,
             "fecha_expiracion": primer_detalle.invo_det_invo_id.expedition_date,
+            "numero_factura": factura.invo_number # Agrega el número de factura
         }
         print(f"Invoice ID: {factura.invo_id}")
         print(f"Invoice ID2: {primer_detalle.invo_det_invo_id}")
-
         # Hacer una solicitud a la API para obtener los detalles de los productos
         api_url = "https://inventario-phue.onrender.com/inventario/products/"
         response = requests.get(api_url)
@@ -1532,33 +1532,33 @@ def calcular_totales(detalles, products):
     return subtotal_sin_impuestos, iva12, valor_total
 
 
-
 from django.shortcuts import render, get_object_or_404
 from .models import Titanic
 
+
 def search_passenger(request):
     passenger = None
-    if 'passengerid' in request.GET:
-        id = request.GET['passengerid']
+    if "passengerid" in request.GET:
+        id = request.GET["passengerid"]
         if id:
             try:
                 passenger = Titanic.objects.get(passengerid=id)
             except Titanic.DoesNotExist:
                 # Si no se encuentra el pasajero, redirige con un mensaje
-                messages.error(request, 'No se encontró un pasajero con ese ID.')
+                messages.error(request, "No se encontró un pasajero con ese ID.")
                 return HttpResponseRedirect(request.path)  # Redirige a la misma página
 
-    return render(request, 'search.html', {'passenger': passenger})
-
+    return render(request, "search.html", {"passenger": passenger})
 
 
 # Las vistas correspondientes en views.py
 def bienvenida(request):
-    return render(request, 'bienvenida.html')
+    return render(request, "bienvenida.html")
+
 
 # Las vistas correspondientes en views.py
 def bienvenida2(request):
-    return render(request, 'bienvenida2.html')
+    return render(request, "bienvenida2.html")
 
 
 from .models import Titanic2  # Importa el modelo Titanic2 en lugar de Titanic
@@ -1569,16 +1569,17 @@ from django.urls import reverse
 from django.contrib import messages
 from .models import Titanic2
 
+
 def search_passenger2(request):
     passenger = None
-    if 'passengerid' in request.GET:
-        id = request.GET['passengerid']
+    if "passengerid" in request.GET:
+        id = request.GET["passengerid"]
         if id:
             try:
                 passenger = Titanic2.objects.get(passengerid2=id)
             except Titanic2.DoesNotExist:
                 # Si no se encuentra el pasajero, redirige con un mensaje
-                messages.error(request, 'No se encontró un pasajero con ese ID.')
+                messages.error(request, "No se encontró un pasajero con ese ID.")
                 return HttpResponseRedirect(request.path)  # Redirige a la misma página
 
-    return render(request, 'search2.html', {'passenger': passenger})
+    return render(request, "search2.html", {"passenger": passenger})

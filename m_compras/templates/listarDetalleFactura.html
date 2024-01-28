@@ -11,7 +11,7 @@
     <button type="button" id="btn-generar-pdf" class="btn btn-primary" onclick="imprimirPDF()">Imprimir</button>
   </form>
   <p>
-    Cliente: {{ info_factura.cliente_nombre }} | Fecha: {{ info_factura.fecha }} | Tipo de Pago: {{ info_factura.tipo_pago }}
+    Número de Factura: {{ info_factura.numero_factura }} | Cliente: {{ info_factura.cliente_nombre }} | Fecha: {{ info_factura.fecha }} | Tipo de Pago: {{ info_factura.tipo_pago }}
     <!-- Mostrar la Fecha de Expiración solo si el pay_type es "Credito" -->
     {% if info_factura.tipo_pago == 'Credito' %}
       | Fecha de Expiración: {{ info_factura.fecha_expiracion|default:'Desconocida' }}

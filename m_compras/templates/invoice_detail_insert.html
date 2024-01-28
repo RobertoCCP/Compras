@@ -251,9 +251,19 @@
                 success: function (response) {
                     // Manejar la respuesta del servidor si es necesario
                     alert('Productos registrados con éxito');
+                    
+                    // Preguntar al usuario si quiere imprimir la factura
+                    if (confirm('¿Quieres imprimir la factura?')) {
+                        console.log('Usuario eligió imprimir');  // Agregar este console.log
+                        generarPDF();
+                        // Redirigir a la página de consultar_facturas
+                        //window.location.href = '/m_compras/consultar_facturas/';
+                    } else {
+                        console.log('Usuario eligió no imprimir');  // Agregar este console.log
+                        // Redirigir a la página de consultar_facturas
+                        window.location.href = '/m_compras/consultar_facturas/';
+                    }
 
-                    // Redirigir a la página de consultar_facturas
-                    window.location.href = '/m_compras/consultar_facturas/';
                 },
                 dataType: 'json',
                 error: function (error) {
@@ -266,6 +276,8 @@
             cartProducts = [];
             // Limpiar la tabla después de registrar los productos
             updateInvoiceDetailTable();
+
+
         }
 
         // Función para generar PDF
