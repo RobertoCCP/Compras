@@ -1300,7 +1300,7 @@ def generar_pdf(request, invoice_id):
     story.append(Paragraph("Av. 17 de julio, FICA", cuerpo_documento_style))
 
     # Configura el idioma para obtener la fecha en español
-    locale.setlocale(locale.LC_TIME, "es_ES.UTF-8")
+    locale.setlocale(locale.LC_ALL, 'es_ES.utf-8')
 
     # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
     fecha = datetime.now().strftime("%d de %B de %Y")
