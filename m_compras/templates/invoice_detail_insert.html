@@ -134,6 +134,7 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.4.min.js" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         // Variable global para almacenar los productos en el carrito
         let cartProducts = [];
@@ -219,72 +220,74 @@
             }
         }
 
-        // Función para registrar productos
-        function registerProducts() {
-            // Verificar si hay productos para registrar
-            if (cartProducts.length === 0) {
-                alert('No hay productos para registrar.');
-                return;
-            }
+// Función para registrar productos
+function registerProducts() {
+    // Verificar si hay productos para registrar
+    if (cartProducts.length === 0) {
+        alert('No hay productos para registrar.');
+        return;
+    }
 
-            // Obtener el token CSRF del documento
-            var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
+    // Obtener el token CSRF del documento
+    var csrfToken = $('input[name=csrfmiddlewaretoken]').val();
 
-            // Obtener el invo_det_invo_id de la URL actual
-            var invo_det_invo_id = window.location.pathname.split('/').slice(-2, -1)[0];
+    // Obtener el invo_det_invo_id de la URL actual
+    var invo_det_invo_id = window.location.pathname.split('/').slice(-2, -1)[0];
 
-            console.log('cartProducts =', cartProducts);
+    // Verificar si invo_det_invo_id está vacío o no es un número válido
+    if (!invo_det_invo_id || isNaN(parseInt(invo_det_invo_id))) {
+        alert('Error: El ID de la factura no es válido.');
+    } else {
+        // Convertir invo_det_invo_id a entero antes de utilizarlo
+        invo_det_invo_id = parseInt(invo_det_invo_id);
 
-            let products_json = JSON.stringify(cartProducts);
-
-            console.log('products_json =', products_json);
-
-            // Enviar los datos al servidor mediante una petición AJAX
-            $.ajax({
-                type: 'POST',
-                url: '/m_compras/invoice_detail_insert/' + invo_det_invo_id + '/',
-                data: JSON.stringify({ "products": cartProducts }),
-                contentType: 'application/json; charset=utf-8',
-                headers: {
-                    'X-CSRFToken': csrfToken
-                },
-                success: function (response) {
-                    // Manejar la respuesta del servidor si es necesario
-                    alert('Productos registrados con éxito');
-                    
-                    // Preguntar al usuario si quiere imprimir la factura
-                    if (confirm('¿Quieres imprimir la factura?')) {
-                        console.log('Usuario eligió imprimir');  // Agregar este console.log
-                        generarPDF();
-                        // Redirigir a la página de consultar_facturas
-                        //window.location.href = '/m_compras/consultar_facturas/';
+        // Enviar los datos al servidor mediante una petición AJAX
+        $.ajax({
+            type: 'POST',
+            url: '/m_compras/invoice_detail_insert/' + invo_det_invo_id + '/',
+            data: JSON.stringify({ "products": cartProducts }),
+            contentType: 'application/json; charset=utf-8',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            success: function (response) {
+                // Mostrar Sweet Alert con opciones antes de la redirección
+                Swal.fire({
+                    title: 'Registro Exitoso',
+                    text: '¿Quieres imprimir la factura?',
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Sí, imprimir',
+                    cancelButtonText: 'No, continuar sin imprimir'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        console.log('Usuario eligió imprimir');
+                        // Si el usuario elige imprimir, redirigir a la página de generación de PDF y luego imprimir
+                        window.location.href = '/m_compras/generar_pdf/' + invo_det_invo_id + '/';
                     } else {
-                        console.log('Usuario eligió no imprimir');  // Agregar este console.log
-                        // Redirigir a la página de consultar_facturas
-                        window.location.href = '/m_compras/consultar_facturas/';
+                        console.log('Usuario eligió no imprimir');
+                        // Si el usuario elige no imprimir, simplemente redirigir a la página de consultar_facturas
+                        window.location.href = '{% url "consultar_facturas" %}';
                     }
+                });
+            },
+            dataType: 'json',
+            error: function (error) {
+                console.error('Error al registrar productos:', error);
+                alert('Error al registrar productos. Detalles en la consola.');
+            }
+        });
+    }
+}
 
-                },
-                dataType: 'json',
-                error: function (error) {
-                    console.error('Error al registrar productos:', error);
-                    alert('Error al registrar productos. Detalles en la consola.');
-                }
-            });
+// Función para generar PDF
+function generarPDF() {
+    var form = document.getElementById('pdf-form')
+    form.submit()
+}
 
-            // Limpiar el array después de enviar los datos
-            cartProducts = [];
-            // Limpiar la tabla después de registrar los productos
-            updateInvoiceDetailTable();
-
-
-        }
-
-        // Función para generar PDF
-        function generarPDF() {
-            // Implementar la lógica para generar PDF si es necesario
-            // ...
-        }
 
         // Función para buscar productos
         function searchProducts() {

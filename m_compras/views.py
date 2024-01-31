@@ -56,9 +56,22 @@ def consultar_proveedores(request):
     direccion_orden = "DESC" if orden.startswith("-") else "ASC"
 
     base_query = "SELECT * FROM public.providers_select_all()"
+
+    # Lista de campos por los cuales se puede buscar
+    campos_busqueda = ["prov_name", "prov_dni", "prov_status", "prov_type"]
+
+    # Construir la condición de búsqueda
+    condiciones_busqueda = [
+        f"{campo} ILIKE %s" for campo in campos_busqueda
+    ]
+
+    # Combinar las condiciones con OR para permitir buscar por varios campos
+    condicion_busqueda = " OR ".join(condiciones_busqueda)
+
     if search_query:
-        query = f"{base_query} WHERE prov_name ILIKE %s ORDER BY {campo_orden} {direccion_orden};"
-        proveedores = Providers.objects.raw(query, [f"%{search_query}%"])
+        query = f"{base_query} WHERE {condicion_busqueda} ORDER BY {campo_orden} {direccion_orden};"
+        params = ["%" + search_query + "%"] * len(campos_busqueda)
+        proveedores = Providers.objects.raw(query, params)
     else:
         query = f"{base_query} ORDER BY {campo_orden} {direccion_orden};"
         proveedores = Providers.objects.raw(query)
@@ -1325,6 +1338,10 @@ def generar_pdf(request, invoice_id):
             cuerpo_documento_style,
         )
     )
+
+    # Número de factura
+    numero_factura_text = f"Número de Factura: {factura.invo_number}"
+    story.append(Paragraph(numero_factura_text, cuerpo_documento_style))
 
     # Estilo personalizado para los detalles adicionales de la factura
     detalles_factura_style = ParagraphStyle(
