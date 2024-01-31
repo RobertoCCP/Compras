@@ -1240,6 +1240,12 @@ def generar_pdf(request, invoice_id):
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="factura_{invoice_id}.pdf"'
 
+    # Configura el idioma para obtener la fecha en español
+    try:
+        locale.setlocale(locale.LC_ALL, 'en_US.utf-8')
+    except locale.Error as e:
+        print(f"Error setting locale: {e}")
+
     doc = SimpleDocTemplate(response, pagesize=letter)
     # Configurar el estilo del documento
     styles = getSampleStyleSheet()
@@ -1298,9 +1304,6 @@ def generar_pdf(request, invoice_id):
     story.append(Paragraph("LOGO DE LA EMPRESA", titulo_documento_style))
     story.append(Paragraph("MÓDULO DE COMPRAS", subtitulo_documento_style))
     story.append(Paragraph("Av. 17 de julio, FICA", cuerpo_documento_style))
-
-    # Configura el idioma para obtener la fecha en español
-    locale.setlocale(locale.LC_ALL, 'es_ES.utf-8')
 
     # Fecha y hora a la izquierda, debajo del texto "Impreso por el administrador"
     fecha = datetime.now().strftime("%d de %B de %Y")
